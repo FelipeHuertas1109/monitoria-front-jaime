@@ -1,12 +1,80 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
+import { AsistenciasService } from '../services/asistencias';
+import { todayBogota } from '../utils/date';
+import type { Jornada } from '../types/asistencias';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const isDirectivo = user?.tipo_usuario === 'DIRECTIVO';
+  const [marking, setMarking] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
+  const [canQuickMark, setCanQuickMark] = useState(false);
+  const [markedJornadas, setMarkedJornadas] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
+
+  const checkAuthorization = async () => {
+    if (!token || isDirectivo) return;
+    try {
+      const list = await AsistenciasService.misAsistencias({ fecha: todayBogota() }, token);
+      console.log('Dashboard - Asistencias recibidas:', list);
+      
+      // El endpoint puede devolver lista vacía si no hay asistencias generadas
+      // Solo mostrar botón si hay asistencias autorizadas
+      const anyAuthorized = Array.isArray(list) && list.some(a => a.estado_autorizacion === 'autorizado' && !a.presente);
+      console.log('Dashboard - Hay autorizados:', anyAuthorized);
+      setCanQuickMark(Boolean(anyAuthorized));
+      
+      // Actualizar estado de marcación
+      const markedM = list.some(a => a.horario.jornada === 'M' && a.presente);
+      const markedT = list.some(a => a.horario.jornada === 'T' && a.presente);
+      setMarkedJornadas({ M: markedM, T: markedT });
+    } catch (error) {
+      console.error('Dashboard - Error al verificar autorización:', error);
+      setCanQuickMark(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthorization();
+    
+    // Polling cada 3 segundos para detectar cambios más rápido
+    if (!isDirectivo) {
+      const interval = setInterval(checkAuthorization, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [token, isDirectivo]);
+
+  const handleMark = async (jornada: Jornada) => {
+    if (!token) return;
+    try {
+      setMarking(prev => ({ ...prev, [jornada]: true }));
+      await AsistenciasService.marcar({ fecha: todayBogota(), jornada }, token);
+      
+      // Mostrar alerta de éxito
+      await Swal.fire({ 
+        icon: 'success', 
+        title: '¡Marcado exitosamente!', 
+        text: `Has marcado tu asistencia de ${jornada === 'M' ? 'Mañana' : 'Tarde'}`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
+      // Actualizar estado local inmediatamente
+      setMarkedJornadas(prev => ({ ...prev, [jornada]: true }));
+      
+      // Verificar estado actualizado del servidor
+      setTimeout(checkAuthorization, 1000);
+      
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'No se pudo marcar';
+      await Swal.fire({ icon: 'error', title: 'No se pudo marcar', text: msg });
+    } finally {
+      setMarking(prev => ({ ...prev, [jornada]: false }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,26 +153,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ID Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">ID</dt>
-                      <dd className="text-lg font-medium text-gray-900">{user?.id}</dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Navigation Cards */}
@@ -175,25 +224,56 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Main Content Area */}
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Bienvenido al Sistema de Monitoría
-              </h3>
-              <div className="text-sm text-gray-500 space-y-2">
-                <p>Has iniciado sesión correctamente en el sistema.</p>
-                <p>Utiliza las tarjetas de navegación superior para acceder a las diferentes funcionalidades.</p>
-                <p><strong>Información del usuario:</strong></p>
-                <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>ID: {user?.id}</li>
-                  <li>Usuario: {user?.username}</li>
-                  <li>Nombre: {user?.nombre}</li>
-                  <li>Tipo: {user?.tipo_usuario_display}</li>
-                </ul>
+          {/* Main Content Area - Quick actions */}
+          {!isDirectivo && canQuickMark && (
+            <div className="bg-white shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  Marcación rápida
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">Marca tu asistencia del día rápidamente.</p>
+                <div className="flex flex-wrap gap-3">
+                  {markedJornadas.M ? (
+                    <div className="inline-flex items-center px-4 py-2 rounded bg-green-100 text-green-800 border border-green-200">
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Mañana marcada
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleMark('M')}
+                      disabled={marking.M}
+                      className="inline-flex items-center px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                    >
+                      {marking.M ? 'Marcando Mañana...' : 'Marcar Mañana'}
+                    </button>
+                  )}
+                  
+                  {markedJornadas.T ? (
+                    <div className="inline-flex items-center px-4 py-2 rounded bg-green-100 text-green-800 border border-green-200">
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Tarde marcada
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleMark('T')}
+                      disabled={marking.T}
+                      className="inline-flex items-center px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                    >
+                      {marking.T ? 'Marcando Tarde...' : 'Marcar Tarde'}
+                    </button>
+                  )}
+                  
+                  <Link href="/monitor/asistencias" className="inline-flex items-center px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+                    Ver mis asistencias
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

@@ -6,14 +6,26 @@ export type Jornada = 'M' | 'T';
 export type Sede = 'SA' | 'BA';
 
 // Entidades
+export interface Horario {
+  id: number;
+  usuario: Pick<Usuario, 'id' | 'nombre' | 'username' | 'tipo_usuario' | 'tipo_usuario_display'>;
+  dia_semana: number;
+  dia_semana_display: string;
+  jornada: Jornada;
+  jornada_display: string;
+  sede: Sede;
+  sede_display: string;
+}
+
 export interface Asistencia {
   id: number;
-  monitor: Pick<Usuario, 'id' | 'nombre' | 'username'>;
-  jornada: Jornada;
-  sede: Sede;
+  usuario: Pick<Usuario, 'id' | 'nombre' | 'username' | 'tipo_usuario' | 'tipo_usuario_display'>;
+  fecha: string; // YYYY-MM-DD
+  horario: Horario;
   presente: boolean;
   estado_autorizacion: EstadoAutorizacion;
-  fecha: string; // YYYY-MM-DD
+  estado_autorizacion_display: string;
+  horas: number;
 }
 
 // Directivo: listar asistencias
