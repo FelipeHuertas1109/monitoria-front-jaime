@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import LoginForm from '../../components/LoginForm';
+import AuthContainer from '../../components/AuthContainer';
 import HorariosManager from '../../components/HorariosManager';
 
 export default function HorariosPage() {
@@ -19,7 +19,7 @@ export default function HorariosPage() {
               Debes iniciar sesión para acceder a la gestión de horarios
             </p>
           </div>
-          <LoginForm />
+          <AuthContainer />
         </div>
       </div>
     );
