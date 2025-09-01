@@ -24,3 +24,45 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Estilos globales para inputs más oscuros y legibles */
+@layer base {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input:not([type]),
+  select,
+  textarea {
+    background-color: #111827; /* gray-900 */
+    color: #F9FAFB; /* gray-50 */
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9CA3AF; /* gray-400 */
+    opacity: 1;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #60A5FA; /* blue-400 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: #1F2937; /* gray-800 */
+    color: #D1D5DB; /* gray-300 */
+    border-color: #4B5563; /* gray-600 */
+  }
+}
