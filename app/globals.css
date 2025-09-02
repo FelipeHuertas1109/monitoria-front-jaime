@@ -25,7 +25,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Estilos globales para inputs más oscuros y legibles */
+/* Estilos globales para inputs con fondo claro y texto negro */
 @layer base {
   input[type="text"],
   input[type="password"],
@@ -37,16 +37,16 @@ body {
   input:not([type]),
   select,
   textarea {
-    background-color: #111827; /* gray-900 */
-    color: #F9FAFB; /* gray-50 */
-    border: 1px solid #374151; /* gray-700 */
+    background-color: #ffffff; /* Fondo blanco */
+    color: #000000; /* Texto negro */
+    border: 1px solid #D1D5DB; /* gray-300 */
     border-radius: 6px;
     padding: 8px 12px;
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: #9CA3AF; /* gray-400 */
+    color: #6B7280; /* gray-500 - texto gris pero legible */
     opacity: 1;
   }
 
@@ -56,13 +56,35 @@ body {
     outline: none;
     border-color: #60A5FA; /* blue-400 */
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background-color: #ffffff; /* Mantener fondo blanco */
+    color: #000000; /* Mantener texto negro */
+  }
+
+  input:hover,
+  select:hover,
+  textarea:hover {
+    background-color: #F9FAFB; /* gray-50 - fondo ligeramente gris al hover */
+    color: #000000; /* Texto negro en hover */
   }
 
   input:disabled,
   select:disabled,
   textarea:disabled {
-    background-color: #1F2937; /* gray-800 */
-    color: #D1D5DB; /* gray-300 */
-    border-color: #4B5563; /* gray-600 */
+    background-color: #F3F4F6; /* gray-100 */
+    color: #6B7280; /* gray-500 */
+    border-color: #D1D5DB; /* gray-300 */
+  }
+
+  /* Estilo específico para cuando se está seleccionando texto */
+  input::selection,
+  textarea::selection {
+    background-color: #BFDBFE; /* blue-200 */
+    color: #000000; /* Texto negro al seleccionar */
+  }
+
+  /* Estilo para option en select */
+  select option {
+    background-color: #ffffff;
+    color: #000000;
   }
 }
