@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [marking, setMarking] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
   const [canQuickMark, setCanQuickMark] = useState(false);
   const [markedJornadas, setMarkedJornadas] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
+  const [availableJornadas, setAvailableJornadas] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
 
   const checkAuthorization = async () => {
     if (!token || isDirectivo) return;
@@ -21,19 +22,31 @@ export default function Dashboard() {
       const list = await AsistenciasService.misAsistencias({ fecha: todayBogota() }, token);
       console.log('Dashboard - Asistencias recibidas:', list);
       
-      // El endpoint puede devolver lista vacía si no hay asistencias generadas
-      // Solo mostrar botón si hay asistencias autorizadas
-      const anyAuthorized = Array.isArray(list) && list.some(a => a.estado_autorizacion === 'autorizado' && !a.presente);
-      console.log('Dashboard - Hay autorizados:', anyAuthorized);
-      setCanQuickMark(Boolean(anyAuthorized));
-      
-      // Actualizar estado de marcación
-      const markedM = list.some(a => a.horario.jornada === 'M' && a.presente);
-      const markedT = list.some(a => a.horario.jornada === 'T' && a.presente);
-      setMarkedJornadas({ M: markedM, T: markedT });
+      if (Array.isArray(list) && list.length > 0) {
+        // Determinar qué jornadas están disponibles para este monitor
+        const hasM = list.some(a => a.horario.jornada === 'M');
+        const hasT = list.some(a => a.horario.jornada === 'T');
+        setAvailableJornadas({ M: hasM, T: hasT });
+        
+        // Solo mostrar sección de marcación rápida si hay asistencias autorizadas
+        const anyAuthorized = list.some(a => a.estado_autorizacion === 'autorizado' && !a.presente);
+        console.log('Dashboard - Hay autorizados:', anyAuthorized);
+        setCanQuickMark(Boolean(anyAuthorized));
+        
+        // Actualizar estado de marcación
+        const markedM = list.some(a => a.horario.jornada === 'M' && a.presente);
+        const markedT = list.some(a => a.horario.jornada === 'T' && a.presente);
+        setMarkedJornadas({ M: markedM, T: markedT });
+      } else {
+        // No hay asistencias generadas para hoy
+        setAvailableJornadas({ M: false, T: false });
+        setCanQuickMark(false);
+        setMarkedJornadas({ M: false, T: false });
+      }
     } catch (error) {
       console.error('Dashboard - Error al verificar autorización:', error);
       setCanQuickMark(false);
+      setAvailableJornadas({ M: false, T: false });
     }
   };
 
@@ -161,29 +174,31 @@ export default function Dashboard() {
 
           {/* Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <Link href="/horarios" className="block">
-              <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-blue-500">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+            {!isDirectivo && (
+              <Link href="/horarios" className="block">
+                <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-blue-500">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Gestión de Horarios</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 mt-1">Crear y administrar horarios múltiples</p>
+                    </div>
                   </div>
-                  <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Gestión de Horarios</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-1">Crear y administrar horarios múltiples</p>
+                  <div className="mt-3 sm:mt-4">
+                    <span className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600">
+                      Acceder
+                      <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
-                <div className="mt-3 sm:mt-4">
-                  <span className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600">
-                    Acceder
-                    <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            )}
 
             {/* Placeholder for future modules */}
             <div className="bg-gray-50 rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-gray-300 opacity-50">
@@ -201,29 +216,55 @@ export default function Dashboard() {
             </div>
 
             {isDirectivo && (
-              <Link href="/directivo/asistencias" className="block">
-                <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-green-500">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+              <>
+                <Link href="/directivo/asistencias" className="block">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-green-500">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Autorizar Monitores</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Revisar y autorizar asistencias del día</p>
+                      </div>
                     </div>
-                    <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Autorizar Monitores</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">Revisar y autorizar asistencias del día</p>
+                    <div className="mt-3 sm:mt-4">
+                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-green-600">
+                        Acceder
+                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
                     </div>
                   </div>
-                  <div className="mt-3 sm:mt-4">
-                    <span className="inline-flex items-center text-xs sm:text-sm font-medium text-green-600">
-                      Acceder
-                      <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
+                </Link>
+
+                <Link href="/directivo/horarios" className="block">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-blue-500">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Ver Horarios</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Consultar todos los horarios de monitores</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 sm:mt-4">
+                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600">
+                        Acceder
+                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </>
             )}
           </div>
 
@@ -236,38 +277,42 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Marca tu asistencia del día rápidamente.</p>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
-                  {markedJornadas.M ? (
-                    <div className="inline-flex items-center px-3 py-2 sm:px-4 rounded bg-green-100 text-green-800 border border-green-200 text-sm">
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      Mañana marcada
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleMark('M')}
-                      disabled={marking.M}
-                      className="inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 text-sm font-medium"
-                    >
-                      {marking.M ? 'Marcando Mañana...' : 'Marcar Mañana'}
-                    </button>
+                  {availableJornadas.M && (
+                    markedJornadas.M ? (
+                      <div className="inline-flex items-center px-3 py-2 sm:px-4 rounded bg-green-100 text-green-800 border border-green-200 text-sm">
+                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Mañana marcada
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleMark('M')}
+                        disabled={marking.M}
+                        className="inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 text-sm font-medium"
+                      >
+                        {marking.M ? 'Marcando Mañana...' : 'Marcar Mañana'}
+                      </button>
+                    )
                   )}
                   
-                  {markedJornadas.T ? (
-                    <div className="inline-flex items-center px-3 py-2 sm:px-4 rounded bg-green-100 text-green-800 border border-green-200 text-sm">
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      Tarde marcada
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleMark('T')}
-                      disabled={marking.T}
-                      className="inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 text-sm font-medium"
-                    >
-                      {marking.T ? 'Marcando Tarde...' : 'Marcar Tarde'}
-                    </button>
+                  {availableJornadas.T && (
+                    markedJornadas.T ? (
+                      <div className="inline-flex items-center px-3 py-2 sm:px-4 rounded bg-green-100 text-green-800 border border-green-200 text-sm">
+                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Tarde marcada
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleMark('T')}
+                        disabled={marking.T}
+                        className="inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 text-sm font-medium"
+                      >
+                        {marking.T ? 'Marcando Tarde...' : 'Marcar Tarde'}
+                      </button>
+                    )
                   )}
                   
                   <Link href="/monitor/asistencias" className="inline-flex items-center justify-center px-3 py-2 sm:px-4 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium">

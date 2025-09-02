@@ -126,7 +126,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500 ${
                 errors.username ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
               }`}
               placeholder="Ingresa tu nombre de usuario"
@@ -152,7 +152,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               value={formData.nombre}
               onChange={(e) => handleInputChange('nombre', e.target.value)}
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500 ${
                 errors.nombre ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
               }`}
               placeholder="Ingresa tu nombre completo"
@@ -178,7 +178,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500 ${
                 errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
               }`}
               placeholder="Mínimo 6 caracteres"
@@ -204,7 +204,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               value={formData.confirm_password}
               onChange={(e) => handleInputChange('confirm_password', e.target.value)}
               required
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500 ${
                 errors.confirm_password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
               }`}
               placeholder="Confirma tu contraseña"
@@ -222,7 +222,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl"
+            className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg hover:shadow-xl"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -242,7 +242,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+            className="text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors"
           >
             ¿Ya tienes cuenta? Inicia sesión
           </button>

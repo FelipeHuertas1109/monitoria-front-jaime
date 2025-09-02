@@ -84,7 +84,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               value={formData.nombre_de_usuario}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500"
               placeholder="Ingresa tu usuario"
             />
           </div>
@@ -100,7 +100,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors text-black placeholder-gray-500"
               placeholder="Ingresa tu contraseña"
             />
           </div>
@@ -108,7 +108,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           <button
             type="submit"
             disabled={isLoading || !formData.nombre_de_usuario || !formData.password}
-            className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-900 focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -128,7 +128,7 @@ export default function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+            className="text-sm text-gray-600 hover:text-gray-800 font-medium"
           >
             ¿No tienes cuenta? Regístrate
           </button>

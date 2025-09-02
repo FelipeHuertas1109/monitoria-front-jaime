@@ -144,40 +144,40 @@ export default function DirectivoAsistencias() {
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Fecha</label>
           <input
             type="date"
-            className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-gray-900"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white text-gray-900"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Estado</label>
-          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={estado}
+          <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white text-gray-900" value={estado}
             onChange={(e) => setEstado(e.target.value as EstadoAutorizacion | '')}
           >
-            <option value="">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="autorizado">Autorizado</option>
-            <option value="rechazado">Rechazado</option>
+            <option value="" className="text-gray-900">Todos</option>
+            <option value="pendiente" className="text-gray-900">Pendiente</option>
+            <option value="autorizado" className="text-gray-900">Autorizado</option>
+            <option value="rechazado" className="text-gray-900">Rechazado</option>
           </select>
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Jornada</label>
-          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={jornada}
+          <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white text-gray-900" value={jornada}
             onChange={(e) => setJornada(e.target.value as Jornada | '')}
           >
-            <option value="">Todas</option>
-            <option value="M">Mañana</option>
-            <option value="T">Tarde</option>
+            <option value="" className="text-gray-900">Todas</option>
+            <option value="M" className="text-gray-900">Mañana</option>
+            <option value="T" className="text-gray-900">Tarde</option>
           </select>
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Sede</label>
-          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={sede}
+          <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white text-gray-900" value={sede}
             onChange={(e) => setSede(e.target.value as Sede | '')}
           >
-            <option value="">Todas</option>
-            <option value="SA">San Antonio</option>
-            <option value="BA">Barcelona</option>
+            <option value="" className="text-gray-900">Todas</option>
+            <option value="SA" className="text-gray-900">San Antonio</option>
+            <option value="BA" className="text-gray-900">Barcelona</option>
           </select>
         </div>
         <div className="flex items-end sm:col-span-1 lg:col-span-1">
@@ -221,47 +221,47 @@ export default function DirectivoAsistencias() {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                     {a.horario.dia_semana_display}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                     {a.horario.jornada_display}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                     {a.horario.sede_display}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <span className={a.presente ? 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800' : 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700'}>
+                  <span className={a.presente ? 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700' : 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700'}>
                     {a.presente ? 'Sí' : 'No'}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
                   {a.estado_autorizacion === 'autorizado' && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">{a.estado_autorizacion_display}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">{a.estado_autorizacion_display}</span>
                   )}
                   {a.estado_autorizacion === 'pendiente' && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{a.estado_autorizacion_display}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">{a.estado_autorizacion_display}</span>
                   )}
                   {a.estado_autorizacion === 'rechazado' && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{a.estado_autorizacion_display}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">{a.estado_autorizacion_display}</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-sm">
                   <div className="flex gap-2">
                     <button
-                      className="px-3 py-1 rounded bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:opacity-50 text-xs"
+                      className="px-3 py-1 rounded bg-green-600 text-white shadow hover:bg-green-700 disabled:opacity-50 text-xs"
                       onClick={() => handleAutorizar(a.id)}
                       disabled={a.estado_autorizacion === 'autorizado'}
                     >
                       Autorizar
                     </button>
                     <button
-                      className="px-3 py-1 rounded bg-rose-600 text-white shadow hover:bg-rose-700 disabled:opacity-50 text-xs"
+                      className="px-3 py-1 rounded bg-red-600 text-white shadow hover:bg-red-700 disabled:opacity-50 text-xs"
                       onClick={() => handleRechazar(a.id)}
                       disabled={a.estado_autorizacion === 'rechazado'}
                     >
@@ -301,25 +301,25 @@ export default function DirectivoAsistencias() {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
                 <p className="text-xs text-gray-500 uppercase font-semibold">Día</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mt-1">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 mt-1">
                   {a.horario.dia_semana_display}
                 </span>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase font-semibold">Jornada</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mt-1">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 mt-1">
                   {a.horario.jornada_display}
                 </span>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase font-semibold">Sede</p>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 mt-1">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 mt-1">
                   {a.horario.sede_display}
                 </span>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase font-semibold">Marcado</p>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold mt-1 ${a.presente ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`}>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold mt-1 ${a.presente ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                   {a.presente ? 'Sí' : 'No'}
                 </span>
               </div>
@@ -329,27 +329,27 @@ export default function DirectivoAsistencias() {
               <p className="text-xs text-gray-500 uppercase font-semibold">Estado</p>
               <div className="mt-1">
                 {a.estado_autorizacion === 'autorizado' && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{a.estado_autorizacion_display}</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">{a.estado_autorizacion_display}</span>
                 )}
                 {a.estado_autorizacion === 'pendiente' && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{a.estado_autorizacion_display}</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">{a.estado_autorizacion_display}</span>
                 )}
                 {a.estado_autorizacion === 'rechazado' && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{a.estado_autorizacion_display}</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">{a.estado_autorizacion_display}</span>
                 )}
               </div>
             </div>
 
             <div className="flex gap-2 pt-3 border-t">
               <button
-                className="flex-1 px-3 py-2 rounded bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:opacity-50 text-sm font-medium"
+                className="flex-1 px-3 py-2 rounded bg-green-600 text-white shadow hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
                 onClick={() => handleAutorizar(a.id)}
                 disabled={a.estado_autorizacion === 'autorizado'}
               >
                 Autorizar
               </button>
               <button
-                className="flex-1 px-3 py-2 rounded bg-rose-600 text-white shadow hover:bg-rose-700 disabled:opacity-50 text-sm font-medium"
+                className="flex-1 px-3 py-2 rounded bg-red-600 text-white shadow hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
                 onClick={() => handleRechazar(a.id)}
                 disabled={a.estado_autorizacion === 'rechazado'}
               >

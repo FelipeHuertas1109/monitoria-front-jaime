@@ -86,7 +86,7 @@ export default function MonitorAsistencias() {
           <label className="block text-sm font-medium mb-1">Fecha</label>
           <input
             type="date"
-            className="w-full sm:w-auto border rounded px-3 py-2 text-sm"
+            className="w-full sm:w-auto border border-gray-300 rounded px-3 py-2 text-sm bg-white text-gray-900"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
