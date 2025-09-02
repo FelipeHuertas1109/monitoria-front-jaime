@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { AsistenciasService } from '../services/asistencias';
 import { EstadoAutorizacion, Jornada, Sede, Asistencia } from '../types/asistencias';
@@ -9,6 +10,7 @@ import { todayBogota } from '../utils/date';
 
 export default function DirectivoAsistencias() {
   const { token } = useAuth();
+  const router = useRouter();
   const [fecha, setFecha] = useState<string>(todayBogota());
   const [estado, setEstado] = useState<EstadoAutorizacion | ''>('');
   const [jornada, setJornada] = useState<Jornada | ''>('');
@@ -17,6 +19,7 @@ export default function DirectivoAsistencias() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const canQuery = useMemo(() => Boolean(token && fecha), [token, fecha]);
 
@@ -27,6 +30,17 @@ export default function DirectivoAsistencias() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  // Auto-refresh cada 30 segundos
+  useEffect(() => {
+    if (!canQuery) return;
+    
+    const interval = setInterval(() => {
+      fetchAsistencias();
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+  }, [canQuery]);
+
   const fetchAsistencias = async () => {
     if (!token) return;
     try {
@@ -34,6 +48,7 @@ export default function DirectivoAsistencias() {
       setError(null);
       const resp = await AsistenciasService.listar({ fecha, estado, jornada, sede }, token);
       setAsistencias(resp.resultados);
+      setLastUpdate(new Date());
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Error al listar asistencias';
       setError(msg);
@@ -88,10 +103,39 @@ export default function DirectivoAsistencias() {
 
   return (
     <div className="max-w-6xl mx-auto p-4">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Asistencias del día
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Asistencias del día
+          </h1>
+          {lastUpdate && (
+            <p className="text-xs text-gray-500 mt-1">
+              Última actualización: {lastUpdate.toLocaleTimeString()} 
+              <span className="ml-2 inline-flex items-center">
+                <svg className="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Actualización automática cada 30s
+              </span>
+            </p>
+          )}
+        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-300 text-sm"
+        >
+          <svg 
+            className="w-4 h-4" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="hidden sm:inline">Volver al inicio</span>
+          <span className="sm:hidden">Volver</span>
+        </button>
       </div>
 
       {/* Filtros */}
@@ -100,14 +144,14 @@ export default function DirectivoAsistencias() {
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Fecha</label>
           <input
             type="date"
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-gray-900"
+            className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-gray-900"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Estado</label>
-          <select className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={estado}
+          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={estado}
             onChange={(e) => setEstado(e.target.value as EstadoAutorizacion | '')}
           >
             <option value="">Todos</option>
@@ -118,7 +162,7 @@ export default function DirectivoAsistencias() {
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Jornada</label>
-          <select className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={jornada}
+          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={jornada}
             onChange={(e) => setJornada(e.target.value as Jornada | '')}
           >
             <option value="">Todas</option>
@@ -128,7 +172,7 @@ export default function DirectivoAsistencias() {
         </div>
         <div>
           <label className="block text-xs font-semibold mb-1 text-indigo-700">Sede</label>
-          <select className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={sede}
+          <select className="w-full border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400" value={sede}
             onChange={(e) => setSede(e.target.value as Sede | '')}
           >
             <option value="">Todas</option>
@@ -136,11 +180,11 @@ export default function DirectivoAsistencias() {
             <option value="BA">Barcelona</option>
           </select>
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end sm:col-span-1 lg:col-span-1">
           <button
             onClick={fetchAsistencias}
             disabled={!canQuery || loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded shadow hover:from-indigo-700 hover:to-purple-700 disabled:opacity-60"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded shadow hover:from-indigo-700 hover:to-purple-700 disabled:opacity-60 text-sm font-medium"
           >
             {loading ? 'Cargando...' : 'Buscar'}
           </button>
@@ -151,15 +195,15 @@ export default function DirectivoAsistencias() {
         <div className="mb-4 text-red-600 text-sm">{error}</div>
       )}
 
-      {/* Tabla */}
-      <div className="overflow-x-auto bg-white border rounded shadow">
+      {/* Tabla - Vista desktop */}
+      <div className="hidden md:block overflow-x-auto bg-white border rounded shadow">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gradient-to-r from-indigo-50 to-purple-50">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Monitor</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Jornada</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Sede</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Presente</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Marcado</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Estado</th>
               <th className="px-4 py-2" />
             </tr>
@@ -204,14 +248,14 @@ export default function DirectivoAsistencias() {
                 <td className="px-4 py-3 text-sm">
                   <div className="flex gap-2">
                     <button
-                      className="px-3 py-1 rounded bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:opacity-50"
+                      className="px-3 py-1 rounded bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:opacity-50 text-xs"
                       onClick={() => handleAutorizar(a.id)}
                       disabled={a.estado_autorizacion === 'autorizado'}
                     >
                       Autorizar
                     </button>
                     <button
-                      className="px-3 py-1 rounded bg-rose-600 text-white shadow hover:bg-rose-700 disabled:opacity-50"
+                      className="px-3 py-1 rounded bg-rose-600 text-white shadow hover:bg-rose-700 disabled:opacity-50 text-xs"
                       onClick={() => handleRechazar(a.id)}
                       disabled={a.estado_autorizacion === 'rechazado'}
                     >
@@ -230,6 +274,82 @@ export default function DirectivoAsistencias() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Vista mobile - Tarjetas */}
+      <div className="md:hidden space-y-4">
+        {asistencias.map((a) => (
+          <div key={a.id} className="bg-white border rounded-lg shadow p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold">
+                  {a.usuario.nombre?.slice(0,1) || 'M'}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{a.usuario.nombre}</p>
+                  <p className="text-xs text-gray-500">@{a.usuario.username}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">Jornada</p>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mt-1">
+                  {a.horario.jornada_display}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">Sede</p>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 mt-1">
+                  {a.horario.sede_display}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">Marcado</p>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold mt-1 ${a.presente ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-700'}`}>
+                  {a.presente ? 'Sí' : 'No'}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">Estado</p>
+                <div className="mt-1">
+                  {a.estado_autorizacion === 'autorizado' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{a.estado_autorizacion_display}</span>
+                  )}
+                  {a.estado_autorizacion === 'pendiente' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{a.estado_autorizacion_display}</span>
+                  )}
+                  {a.estado_autorizacion === 'rechazado' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{a.estado_autorizacion_display}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3 border-t">
+              <button
+                className="flex-1 px-3 py-2 rounded bg-emerald-600 text-white shadow hover:bg-emerald-700 disabled:opacity-50 text-sm font-medium"
+                onClick={() => handleAutorizar(a.id)}
+                disabled={a.estado_autorizacion === 'autorizado'}
+              >
+                Autorizar
+              </button>
+              <button
+                className="flex-1 px-3 py-2 rounded bg-rose-600 text-white shadow hover:bg-rose-700 disabled:opacity-50 text-sm font-medium"
+                onClick={() => handleRechazar(a.id)}
+                disabled={a.estado_autorizacion === 'rechazado'}
+              >
+                Rechazar
+              </button>
+            </div>
+          </div>
+        ))}
+        {asistencias.length === 0 && !loading && (
+          <div className="bg-white border rounded-lg shadow p-6 text-center">
+            <p className="text-sm text-gray-500">Sin resultados para los filtros seleccionados</p>
+          </div>
+        )}
       </div>
     </div>
   );

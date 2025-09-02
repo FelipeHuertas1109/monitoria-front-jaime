@@ -62,14 +62,31 @@ export default function MonitorAsistencias() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-4">Mis asistencias</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+        <h1 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-0">Mis asistencias</h1>
+        <button
+          onClick={() => window.history.back()}
+          className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-300 text-sm w-fit"
+        >
+          <svg 
+            className="w-4 h-4" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="hidden sm:inline">Volver</span>
+        </button>
+      </div>
 
-      <div className="flex items-end gap-3 mb-4">
-        <div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-4">
+        <div className="w-full sm:w-auto">
           <label className="block text-sm font-medium mb-1">Fecha</label>
           <input
             type="date"
-            className="border rounded px-3 py-2"
+            className="w-full sm:w-auto border rounded px-3 py-2 text-sm"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
@@ -77,7 +94,7 @@ export default function MonitorAsistencias() {
         <button
           onClick={load}
           disabled={!token || loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+          className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-60 text-sm font-medium"
         >
           {loading ? 'Cargando...' : 'Actualizar'}
         </button>
