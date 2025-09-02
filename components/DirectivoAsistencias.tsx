@@ -201,6 +201,7 @@ export default function DirectivoAsistencias() {
           <thead className="bg-gradient-to-r from-indigo-50 to-purple-50">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Monitor</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Día</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Jornada</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Sede</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-indigo-700 uppercase">Marcado</th>
@@ -218,6 +219,11 @@ export default function DirectivoAsistencias() {
                     </span>
                     <span className="text-gray-900 font-medium">{a.usuario.nombre} ({a.usuario.username})</span>
                   </div>
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                    {a.horario.dia_semana_display}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
@@ -267,7 +273,7 @@ export default function DirectivoAsistencias() {
             ))}
             {asistencias.length === 0 && !loading && (
               <tr>
-                <td className="px-4 py-8 text-center text-sm text-gray-500" colSpan={6}>
+                <td className="px-4 py-8 text-center text-sm text-gray-500" colSpan={7}>
                   Sin resultados para los filtros seleccionados
                 </td>
               </tr>
@@ -294,6 +300,12 @@ export default function DirectivoAsistencias() {
             
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">Día</p>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mt-1">
+                  {a.horario.dia_semana_display}
+                </span>
+              </div>
+              <div>
                 <p className="text-xs text-gray-500 uppercase font-semibold">Jornada</p>
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mt-1">
                   {a.horario.jornada_display}
@@ -311,19 +323,20 @@ export default function DirectivoAsistencias() {
                   {a.presente ? 'Sí' : 'No'}
                 </span>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 uppercase font-semibold">Estado</p>
-                <div className="mt-1">
-                  {a.estado_autorizacion === 'autorizado' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{a.estado_autorizacion_display}</span>
-                  )}
-                  {a.estado_autorizacion === 'pendiente' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{a.estado_autorizacion_display}</span>
-                  )}
-                  {a.estado_autorizacion === 'rechazado' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{a.estado_autorizacion_display}</span>
-                  )}
-                </div>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Estado</p>
+              <div className="mt-1">
+                {a.estado_autorizacion === 'autorizado' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{a.estado_autorizacion_display}</span>
+                )}
+                {a.estado_autorizacion === 'pendiente' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{a.estado_autorizacion_display}</span>
+                )}
+                {a.estado_autorizacion === 'rechazado' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">{a.estado_autorizacion_display}</span>
+                )}
               </div>
             </div>
 

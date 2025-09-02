@@ -41,7 +41,7 @@ export default function MonitorAsistencias() {
     if (!token) return;
     try {
       // Optimistic UI: marcar presente=true y estado pendiente
-      setAsistencias(prev => prev.map(a => (a.jornada === jornada ? { ...a, presente: true, estado_autorizacion: a.estado_autorizacion || 'pendiente' } : a)));
+      setAsistencias(prev => prev.map(a => (a.horario.jornada === jornada ? { ...a, presente: true, estado_autorizacion: a.estado_autorizacion || 'pendiente' } : a)));
       const updated = await AsistenciasService.marcar({ fecha, jornada }, token);
       setAsistencias(prev => prev.map(a => (a.id === updated.id ? updated : a)));
     } catch (e) {
@@ -108,17 +108,17 @@ export default function MonitorAsistencias() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-500">Jornada</div>
-                <div className="font-medium">{a.jornada === 'M' ? 'Mañana' : 'Tarde'}</div>
+                <div className="font-medium">{a.horario.jornada_display}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">Sede</div>
-                <div className="font-medium">{a.sede === 'BA' ? 'Barcelona' : 'San Antonio'}</div>
+                <div className="font-medium">{a.horario.sede_display}</div>
               </div>
             </div>
             <div className="mt-3 text-sm">{estadoLabel(a)}</div>
             <div className="mt-3">
               <button
-                onClick={() => marcar(a.jornada)}
+                onClick={() => marcar(a.horario.jornada)}
                 disabled={a.presente}
                 className="px-4 py-2 rounded bg-green-600 text-white disabled:opacity-50"
               >
