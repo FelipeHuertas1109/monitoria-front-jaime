@@ -15,10 +15,11 @@ export class AsistenciasService {
   // Directivo: listar asistencias del día (genera si faltan)
   static async listar(query: ListarAsistenciasQuery, token: string): Promise<ListarAsistenciasResponse> {
     const params = new URLSearchParams();
-    params.set('fecha', query.fecha);
-    if (query.estado !== undefined) params.set('estado', String(query.estado));
-    if (query.jornada !== undefined) params.set('jornada', String(query.jornada));
-    if (query.sede !== undefined) params.set('sede', String(query.sede));
+    // Solo agregar fecha si está presente, si no, traerá asistencias de hoy por defecto
+    if (query.fecha) params.set('fecha', query.fecha);
+    if (query.estado !== undefined && query.estado !== '') params.set('estado', String(query.estado));
+    if (query.jornada !== undefined && query.jornada !== '') params.set('jornada', String(query.jornada));
+    if (query.sede !== undefined && query.sede !== '') params.set('sede', String(query.sede));
 
     const url = `${this.baseUrl}/directivo/asistencias/?${params.toString()}`;
 
@@ -86,7 +87,8 @@ export class AsistenciasService {
   // Monitor: ver mis asistencias (genera si faltan)
   static async misAsistencias(query: MisAsistenciasQuery, token: string): Promise<MisAsistenciasResponse> {
     const params = new URLSearchParams();
-    params.set('fecha', query.fecha);
+    // Solo agregar fecha si está presente, si no, traerá asistencias de hoy por defecto
+    if (query.fecha) params.set('fecha', query.fecha);
     const url = `${this.baseUrl}/monitor/mis-asistencias/?${params.toString()}`;
     
     console.log('AsistenciasService.misAsistencias - URL:', url);

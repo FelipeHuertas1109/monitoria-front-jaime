@@ -30,7 +30,7 @@ export interface Asistencia {
 
 // Directivo: listar asistencias
 export interface ListarAsistenciasQuery {
-  fecha: string; // YYYY-MM-DD
+  fecha?: string; // YYYY-MM-DD - opcional, si no se envía trae las de hoy
   estado?: EstadoAutorizacion | '';
   jornada?: Jornada | '';
   sede?: Sede | '';
@@ -49,7 +49,7 @@ export interface AccionAsistenciaResponse extends Asistencia {}
 
 // Monitor: ver mis asistencias
 export interface MisAsistenciasQuery {
-  fecha: string; // YYYY-MM-DD
+  fecha?: string; // YYYY-MM-DD - opcional, si no se envía trae las de hoy
 }
 
 export type MisAsistenciasResponse = Asistencia[];

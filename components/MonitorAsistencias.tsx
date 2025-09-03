@@ -26,7 +26,7 @@ export default function MonitorAsistencias() {
     try {
       setLoading(true);
       setError(null);
-      const data = await AsistenciasService.misAsistencias({ fecha }, token);
+      const data = await AsistenciasService.misAsistencias({ fecha: fecha || undefined }, token);
       setAsistencias(data);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Error al cargar asistencias';

@@ -21,7 +21,7 @@ export default function DirectivoAsistencias() {
   const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const canQuery = useMemo(() => Boolean(token && fecha), [token, fecha]);
+  const canQuery = useMemo(() => Boolean(token), [token]);
 
   useEffect(() => {
     if (canQuery) {
@@ -105,9 +105,9 @@ export default function DirectivoAsistencias() {
     <div className="max-w-6xl mx-auto p-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Asistencias del día
-          </h1>
+                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          {fecha === todayBogota() ? 'Asistencias de hoy' : `Asistencias del ${fecha}`}
+        </h1>
           {lastUpdate && (
             <p className="text-xs text-gray-500 mt-1">
               Última actualización: {lastUpdate.toLocaleTimeString()} 

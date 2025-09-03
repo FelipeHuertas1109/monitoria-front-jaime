@@ -200,20 +200,7 @@ export default function Dashboard() {
               </Link>
             )}
 
-            {/* Placeholder for future modules */}
-            <div className="bg-gray-50 rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-gray-300 opacity-50">
-              <div className="flex items-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                  <h3 className="text-base sm:text-lg font-medium text-gray-500 truncate">Reportes</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 mt-1">Próximamente disponible</p>
-                </div>
-              </div>
-            </div>
+
 
             {isDirectivo && (
               <>
@@ -256,6 +243,30 @@ export default function Dashboard() {
                     </div>
                     <div className="mt-3 sm:mt-4">
                       <span className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600">
+                        Acceder
+                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+
+                <Link href="/directivo/reportes" className="block">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-purple-500">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">📊 Reportes</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Estadísticas y análisis de asistencias</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 sm:mt-4">
+                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-purple-600">
                         Acceder
                         <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
