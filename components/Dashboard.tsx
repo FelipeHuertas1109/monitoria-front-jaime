@@ -275,6 +275,30 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </Link>
+
+                <Link href="/directivo/ajustes-horas" className="block">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-amber-500">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 2c-2.21 0-4 1.79-4 4v6h8v-6c0-2.21-1.79-4-4-4z" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Ajustes de Horas</h3>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Dar o quitar horas manualmente</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 sm:mt-4">
+                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-amber-600">
+                        Acceder
+                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </>
             )}
           </div>

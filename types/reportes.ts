@@ -20,8 +20,11 @@ export interface ReporteHorasMonitorResponse {
     fecha_fin: string;
   };
   estadisticas: {
+    horas_asistencias: number;
+    horas_ajustes: number;
     total_horas: number;
     total_asistencias: number;
+    total_ajustes: number;
     asistencias_presentes: number;
     asistencias_autorizadas: number;
     promedio_horas_por_dia: number;
@@ -30,9 +33,8 @@ export interface ReporteHorasMonitorResponse {
     sede?: string;
     jornada?: string;
   };
-  detalle_por_fecha: {
-    [fecha: string]: Asistencia[];
-  };
+  detalle_por_fecha: { [fecha: string]: Asistencia[] };
+  ajustes_por_fecha?: { [fecha: string]: any[] };
 }
 
 // Monitor individual en el reporte de todos
@@ -42,11 +44,15 @@ export interface MonitorEnReporte {
     username: string;
     nombre: string;
   };
+  horas_asistencias: number;
+  horas_ajustes: number;
   total_horas: number;
   total_asistencias: number;
+  total_ajustes: number;
   asistencias_presentes: number;
   asistencias_autorizadas: number;
   asistencias: Asistencia[];
+  ajustes: any[];
 }
 
 // Reporte de horas de todos los monitores
@@ -58,6 +64,7 @@ export interface ReporteHorasTodosResponse {
   estadisticas_generales: {
     total_horas: number;
     total_asistencias: number;
+    total_ajustes: number;
     total_monitores: number;
     promedio_horas_por_monitor: number;
   };
