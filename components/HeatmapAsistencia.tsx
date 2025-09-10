@@ -27,13 +27,14 @@ export default function HeatmapAsistencia({
   const [datosProcesados, setDatosProcesados] = useState<ProcessedHeatmapData[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Generar fechas del año
+  // Generar fechas de septiembre a diciembre
   const fechasDelAño = useMemo(() => {
     const fechas: string[] = [];
-    const inicioAño = new Date(añoSeleccionado, 0, 1);
-    const finAño = new Date(añoSeleccionado, 11, 31);
+    // Solo septiembre (8) a diciembre (11)
+    const inicioPeriodo = new Date(añoSeleccionado, 8, 1); // Septiembre
+    const finPeriodo = new Date(añoSeleccionado, 11, 31); // Diciembre
     
-    for (let d = new Date(inicioAño); d <= finAño; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(inicioPeriodo); d <= finPeriodo; d.setDate(d.getDate() + 1)) {
       fechas.push(d.toISOString().split('T')[0]);
     }
     return fechas;
@@ -185,19 +186,21 @@ export default function HeatmapAsistencia({
     return `${monitor}\n${fechaFormateada}\n${presente ? 'Presente' : 'Ausente'} - ${estadoTexto}\n${jornada === 'M' ? 'Mañana' : 'Tarde'} - ${sede === 'SA' ? 'San Antonio' : 'Barcelona'}`;
   };
 
-  // Obtener nombres de los meses
+  // Obtener nombres de los meses (solo septiembre a diciembre)
   const meses = [
-    'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-    'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    'Sep', 'Oct', 'Nov', 'Dic'
   ];
 
-  // Agrupar fechas por mes
+  // Agrupar fechas por mes (solo septiembre a diciembre)
   const fechasPorMes = useMemo(() => {
     const agrupadas: { [mes: number]: string[] } = {};
     fechasDelAño.forEach(fecha => {
       const mes = new Date(fecha).getMonth();
-      if (!agrupadas[mes]) agrupadas[mes] = [];
-      agrupadas[mes].push(fecha);
+      // Solo incluir meses de septiembre (8) a diciembre (11)
+      if (mes >= 8 && mes <= 11) {
+        if (!agrupadas[mes]) agrupadas[mes] = [];
+        agrupadas[mes].push(fecha);
+      }
     });
     return agrupadas;
   }, [fechasDelAño]);
@@ -230,7 +233,7 @@ export default function HeatmapAsistencia({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900">
-            Mapa de Calor de Asistencia {añoSeleccionado}
+            Mapa de Calor de Asistencia {añoSeleccionado} (Sep-Dic)
           </h2>
           <select
             value={añoSeleccionado}
@@ -273,7 +276,7 @@ export default function HeatmapAsistencia({
         <div className="p-4">
           {datosProcesados.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              No hay datos de asistencia para el año {añoSeleccionado}
+              No hay datos de asistencia para septiembre-diciembre {añoSeleccionado}
             </div>
           ) : (
             <div className="space-y-6">
@@ -345,7 +348,7 @@ export default function HeatmapAsistencia({
                     {Object.entries(fechasPorMes).map(([mes, fechas]) => (
                       <div key={mes} className="flex items-center gap-2">
                         <div className="w-12 text-xs font-medium text-gray-600 text-right">
-                          {meses[parseInt(mes)]}
+                          {meses[parseInt(mes) - 8]}
                         </div>
                         <div className="flex gap-1">
                           {fechas.map(fecha => {

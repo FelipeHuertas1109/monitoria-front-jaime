@@ -9,7 +9,8 @@ export class HeatmapService {
 
   static async obtenerDatosAnuales(query: HeatmapQuery, token: string): Promise<HeatmapResponse> {
     const año = query.año || new Date().getFullYear();
-    const fechaInicio = `${año}-01-01`;
+    // Solo datos de septiembre a diciembre
+    const fechaInicio = `${año}-09-01`;
     const fechaFin = `${año}-12-31`;
 
     // Usar el endpoint de reportes de horas de todos los monitores
