@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
@@ -15,6 +15,133 @@ export default function Dashboard() {
   const [canQuickMark, setCanQuickMark] = useState(false);
   const [markedJornadas, setMarkedJornadas] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
   const [availableJornadas, setAvailableJornadas] = useState<{ M: boolean; T: boolean }>({ M: false, T: false });
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [cardOrder, setCardOrder] = useState<number[]>([]);
+
+  // Definir las tarjetas de directivo
+  const directivoCards = [
+    { id: 0, href: '/directivo/asistencias', title: 'Autorizar Monitores', description: 'Revisar y autorizar asistencias del día', color: 'green', icon: 'M5 13l4 4L19 7' },
+    { id: 1, href: '/directivo/horarios', title: 'Ver Horarios', description: 'Consultar todos los horarios de monitores', color: 'blue', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 2, href: '/directivo/reportes', title: '📊 Reportes', description: 'Estadísticas y análisis de asistencias', color: 'purple', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4' },
+    { id: 3, href: '/directivo/ajustes-horas', title: 'Ajustes de Horas', description: 'Dar o quitar horas manualmente', color: 'amber', icon: 'M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 2c-2.21 0-4 1.79-4 4v6h8v-6c0-2.21-1.79-4-4-4z' },
+    { id: 4, href: '/directivo/heatmap', title: '🗺️ Mapa de Calor', description: 'Visualización anual de asistencias', color: 'pink', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4' }
+  ];
+
+  // Inicializar orden de tarjetas
+  useEffect(() => {
+    if (isDirectivo && cardOrder.length === 0) {
+      // Intentar cargar orden guardado desde localStorage
+      const savedOrder = localStorage.getItem('dashboard-card-order');
+      if (savedOrder) {
+        try {
+          const parsedOrder = JSON.parse(savedOrder);
+          // Verificar que el orden guardado sea válido
+          if (Array.isArray(parsedOrder) && parsedOrder.length === directivoCards.length) {
+            setCardOrder(parsedOrder);
+          } else {
+            setCardOrder(directivoCards.map(card => card.id));
+          }
+        } catch {
+          setCardOrder(directivoCards.map(card => card.id));
+        }
+      } else {
+        setCardOrder(directivoCards.map(card => card.id));
+      }
+    }
+  }, [isDirectivo, cardOrder.length]);
+
+  // Guardar orden cuando cambie
+  useEffect(() => {
+    if (isDirectivo && cardOrder.length > 0) {
+      localStorage.setItem('dashboard-card-order', JSON.stringify(cardOrder));
+    }
+  }, [cardOrder, isDirectivo]);
+
+  // Funciones de drag and drop
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newOrder = [...cardOrder];
+    const draggedItem = newOrder[draggedIndex];
+    
+    // Remover el elemento arrastrado
+    newOrder.splice(draggedIndex, 1);
+    
+    // Insertar en la nueva posición
+    newOrder.splice(dropIndex, 0, draggedItem);
+    
+    setCardOrder(newOrder);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  // Función para renderizar una tarjeta
+  const renderCard = (card: typeof directivoCards[0], index: number) => {
+    const colorClasses = {
+      green: 'border-green-500 bg-green-100 text-green-600',
+      blue: 'border-blue-500 bg-blue-100 text-blue-600',
+      purple: 'border-purple-500 bg-purple-100 text-purple-600',
+      amber: 'border-amber-500 bg-amber-100 text-amber-600',
+      pink: 'border-pink-500 bg-pink-100 text-pink-600'
+    };
+
+    return (
+      <Link key={card.id} href={card.href} className="block">
+        <div 
+          draggable
+          onDragStart={(e) => handleDragStart(e, index)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, index)}
+          onDragEnd={handleDragEnd}
+          className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4 sm:p-6 border-l-4 cursor-move h-32 flex flex-col justify-between ${
+            draggedIndex === index 
+              ? 'opacity-50 scale-95 shadow-lg' 
+              : 'hover:scale-[1.01]'
+          }`}
+          style={{ borderLeftColor: `var(--${card.color}-500)` }}
+        >
+          <div className="flex items-center">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[card.color as keyof typeof colorClasses]}`}>
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={card.icon} />
+              </svg>
+            </div>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">{card.title}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2">{card.description}</p>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <span className={`inline-flex items-center text-xs sm:text-sm font-medium ${colorClasses[card.color as keyof typeof colorClasses].split(' ')[2]}`}>
+              Acceder
+              <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  };
 
   const checkAuthorization = async () => {
     if (!token || isDirectivo) return;
@@ -200,105 +327,14 @@ export default function Dashboard() {
               </Link>
             )}
 
-
-
             {isDirectivo && (
               <>
-                <Link href="/directivo/asistencias" className="block">
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-green-500">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Autorizar Monitores</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Revisar y autorizar asistencias del día</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 sm:mt-4">
-                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-green-600">
-                        Acceder
-                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-
-                <Link href="/directivo/horarios" className="block">
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-blue-500">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Ver Horarios</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Consultar todos los horarios de monitores</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 sm:mt-4">
-                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600">
-                        Acceder
-                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-
-                <Link href="/directivo/reportes" className="block">
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-purple-500">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">📊 Reportes</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Estadísticas y análisis de asistencias</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 sm:mt-4">
-                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-purple-600">
-                        Acceder
-                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-
-                <Link href="/directivo/ajustes-horas" className="block">
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6 border-l-4 border-amber-500">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 2c-2.21 0-4 1.79-4 4v6h8v-6c0-2.21-1.79-4-4-4z" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Ajustes de Horas</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Dar o quitar horas manualmente</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 sm:mt-4">
-                      <span className="inline-flex items-center text-xs sm:text-sm font-medium text-amber-600">
-                        Acceder
-                        <svg className="ml-1 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                {/* Tarjetas arrastrables */}
+                {cardOrder.map((cardId, index) => {
+                  const card = directivoCards.find(c => c.id === cardId);
+                  if (!card) return null;
+                  return renderCard(card, index);
+                })}
               </>
             )}
           </div>
