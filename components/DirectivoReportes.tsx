@@ -11,7 +11,8 @@ import {
   ReporteHorasMonitorResponse,
   MonitorEnReporte,
 } from '../types/reportes';
-import { todayBogota } from '../utils/date';
+import { todayBogota, formatDateFromISO, toBackendDateString } from '../utils/date';
+import { usePDFGenerator } from '../hooks/usePDFGenerator';
 
 export default function DirectivoReportes() {
   const { token } = useAuth();
@@ -30,12 +31,13 @@ export default function DirectivoReportes() {
   const [reporteMonitor, setReporteMonitor] = useState<ReporteHorasMonitorResponse | null>(null);
   const [vistaActiva, setVistaActiva] = useState<'todos' | 'individual'>('todos');
   const [error, setError] = useState<string | null>(null);
+  const { generatePDF } = usePDFGenerator();
 
-  // Establecer fecha de inicio por defecto (30 días atrás)
+  // Establecer fecha de inicio por defecto (6 meses atrás)
   useEffect(() => {
-    const fecha30DiasAtras = new Date();
-    fecha30DiasAtras.setDate(fecha30DiasAtras.getDate() - 30);
-    setFechaInicio(fecha30DiasAtras.toISOString().split('T')[0]);
+    const fecha6MesesAtras = new Date();
+    fecha6MesesAtras.setMonth(fecha6MesesAtras.getMonth() - 6);
+    setFechaInicio(fecha6MesesAtras.toISOString().split('T')[0]);
   }, []);
 
   useEffect(() => {
@@ -53,8 +55,8 @@ export default function DirectivoReportes() {
       setError(null);
       
       const query: ReporteHorasQuery = {
-        fecha_inicio: fechaInicio || undefined,
-        fecha_fin: fechaFin || undefined,
+        fecha_inicio: fechaInicio ? toBackendDateString(fechaInicio) : undefined,
+        fecha_fin: fechaFin ? toBackendDateString(fechaFin) : undefined,
         sede: sede || undefined,
         jornada: jornada || undefined,
       };
@@ -78,8 +80,8 @@ export default function DirectivoReportes() {
       setError(null);
       
       const query: ReporteHorasQuery = {
-        fecha_inicio: fechaInicio || undefined,
-        fecha_fin: fechaFin || undefined,
+        fecha_inicio: fechaInicio ? toBackendDateString(fechaInicio) : undefined,
+        fecha_fin: fechaFin ? toBackendDateString(fechaFin) : undefined,
         sede: sede || undefined,
         jornada: jornada || undefined,
       };
@@ -111,7 +113,34 @@ export default function DirectivoReportes() {
   };
 
   const formatearPorcentaje = (valor: number) => `${valor.toFixed(1)}%`;
+  const formatearCumplimiento = (valor: number) => `${Math.round(valor)}%`;
   const formatearHoras = (horas: number) => `${horas.toFixed(1)}h`;
+
+  const handlePrintPDF = async () => {
+    try {
+      const elementId = vistaActiva === 'todos' ? 'reporte-todos' : 'reporte-individual';
+      const title = vistaActiva === 'todos' 
+        ? 'Reporte de Asistencias - Todos los Monitores'
+        : `Reporte de Asistencias - ${reporteMonitor?.monitor.nombre || 'Monitor'}`;
+      
+      // Crear nombre de archivo con nombre del usuario
+      let filename = `reporte-asistencias-${vistaActiva}-${new Date().toISOString().split('T')[0]}.pdf`;
+      if (vistaActiva === 'individual' && reporteMonitor?.monitor.nombre) {
+        const userName = reporteMonitor.monitor.nombre.toLowerCase().replace(/\s+/g, '-');
+        filename = `reporte-asistencias-${userName}-${new Date().toISOString().split('T')[0]}.pdf`;
+      }
+      
+      await generatePDF(elementId, {
+        filename,
+        title,
+        orientation: 'landscape',
+        userName: vistaActiva === 'individual' ? reporteMonitor?.monitor.nombre : undefined
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Error al generar PDF';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -127,22 +156,41 @@ export default function DirectivoReportes() {
             Análisis y estadísticas de asistencias de monitores
           </p>
         </div>
-        <button
-          onClick={() => router.push('/')}
-          className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-300 text-sm"
-        >
-          <svg 
-            className="w-4 h-4" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            xmlns="http://www.w3.org/2000/svg"
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrintPDF}
+            disabled={loading || (!reporteTodos && !reporteMonitor)}
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="hidden sm:inline">Volver al inicio</span>
-          <span className="sm:hidden">Volver</span>
-        </button>
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span className="hidden sm:inline">Imprimir PDF</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-300 text-sm"
+          >
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="hidden sm:inline">Volver al inicio</span>
+            <span className="sm:hidden">Volver</span>
+          </button>
+        </div>
       </div>
 
       {/* Tabs de navegación */}
@@ -250,7 +298,7 @@ export default function DirectivoReportes() {
 
       {/* Vista de Todos los Monitores */}
       {vistaActiva === 'todos' && reporteTodos && (
-        <div className="space-y-6 bg-transparent">
+        <div id="reporte-todos" className="space-y-6 bg-transparent">
           {/* Estadísticas generales */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg shadow-md border p-4 sm:p-6 border-l-4 border-blue-500">
@@ -314,22 +362,6 @@ export default function DirectivoReportes() {
             </div>
           </div>
 
-          {/* Información del período */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-blue-800 text-sm">
-                <strong>Período:</strong> {reporteTodos.periodo.fecha_inicio} a {reporteTodos.periodo.fecha_fin}
-                {Object.keys(reporteTodos.filtros_aplicados).length > 0 && (
-                  <span className="ml-4">
-                    <strong>Filtros:</strong> {Object.entries(reporteTodos.filtros_aplicados).map(([key, value]) => `${key}: ${value}`).join(', ')}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
 
           {/* Tabla de estadísticas por monitor */}
           <div className="bg-white border rounded shadow overflow-hidden">
@@ -392,7 +424,7 @@ export default function DirectivoReportes() {
 
       {/* Vista de Monitor Individual */}
       {vistaActiva === 'individual' && reporteMonitor && (
-        <div className="space-y-6 bg-transparent">
+        <div id="reporte-individual" className="space-y-6 bg-transparent">
           {/* Información del monitor */}
           <div className="bg-white rounded-lg shadow-md border p-6">
             <div className="flex items-center mb-4">
@@ -407,21 +439,6 @@ export default function DirectivoReportes() {
               </div>
             </div>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-blue-800 text-sm">
-                  <strong>Período:</strong> {reporteMonitor.periodo.fecha_inicio} a {reporteMonitor.periodo.fecha_fin}
-                  {Object.keys(reporteMonitor.filtros_aplicados).length > 0 && (
-                    <span className="ml-4">
-                      <strong>Filtros:</strong> {Object.entries(reporteMonitor.filtros_aplicados).map(([key, value]) => `${key}: ${value}`).join(', ')}
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Estadísticas del monitor */}
@@ -452,8 +469,10 @@ export default function DirectivoReportes() {
             </div>
             <div className="bg-white rounded-lg shadow-md border p-4 sm:p-6 border-l-4 border-yellow-500">
               <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-yellow-600">{formatearHoras(reporteMonitor.estadisticas.promedio_horas_por_dia)}</div>
-                <div className="text-xs sm:text-sm text-gray-600">Promedio Diario</div>
+                <div className="text-xl sm:text-2xl font-bold text-yellow-600">
+                  {formatearCumplimiento(calcularPorcentajeAsistencia(reporteMonitor.estadisticas.asistencias_presentes, reporteMonitor.estadisticas.total_asistencias))}
+                </div>
+                <div className="text-xs sm:text-sm text-gray-600">Cumplimiento</div>
               </div>
             </div>
           </div>
@@ -474,12 +493,7 @@ export default function DirectivoReportes() {
                     <div key={fecha} className="p-4">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-medium text-gray-900">
-                          {new Date(fecha).toLocaleDateString('es-ES', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
+                          {formatDateFromISO(fecha)}
                         </h4>
                         <span className="text-sm text-gray-500">
                           {asistencias.length} asistencia{asistencias.length !== 1 ? 's' : ''}

@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
 import { HeatmapService } from '../services/heatmap';
 import { HeatmapQuery, HeatmapData, ProcessedHeatmapData } from '../types/heatmap';
+import { formatDateFromISO } from '../utils/date';
 
 interface HeatmapAsistenciaProps {
   año?: number;
@@ -35,7 +36,11 @@ export default function HeatmapAsistencia({
     const finPeriodo = new Date(añoSeleccionado, 11, 31); // Diciembre
     
     for (let d = new Date(inicioPeriodo); d <= finPeriodo; d.setDate(d.getDate() + 1)) {
-      fechas.push(d.toISOString().split('T')[0]);
+      // Usar formateo local para evitar problemas de zona horaria
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      fechas.push(`${year}-${month}-${day}`);
     }
     return fechas;
   }, [añoSeleccionado]);
@@ -173,12 +178,7 @@ export default function HeatmapAsistencia({
 
   // Función para obtener el tooltip de una celda
   const getTooltip = (fecha: string, monitor: string, presente: boolean, estado: string, jornada: string, sede: string) => {
-    const fechaFormateada = new Date(fecha).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const fechaFormateada = formatDateFromISO(fecha);
     
     const estadoTexto = estado === 'autorizado' ? 'Autorizado' : 
                        estado === 'pendiente' ? 'Pendiente' : 'Rechazado';
@@ -195,7 +195,9 @@ export default function HeatmapAsistencia({
   const fechasPorMes = useMemo(() => {
     const agrupadas: { [mes: number]: string[] } = {};
     fechasDelAño.forEach(fecha => {
-      const mes = new Date(fecha).getMonth();
+      // Parsear fecha localmente para evitar problemas de zona horaria
+      const [year, month, day] = fecha.split('-').map(Number);
+      const mes = month - 1; // month es 0-indexado
       // Solo incluir meses de septiembre (8) a diciembre (11)
       if (mes >= 8 && mes <= 11) {
         if (!agrupadas[mes]) agrupadas[mes] = [];
@@ -353,7 +355,8 @@ export default function HeatmapAsistencia({
                         <div className="flex gap-1">
                           {fechas.map(fecha => {
                             const diaData = monitorData.datos_por_dia[fecha];
-                            const dia = new Date(fecha).getDate();
+                            // Extraer día de la fecha ISO para evitar problemas de zona horaria
+                            const dia = parseInt(fecha.split('-')[2]);
                             
                             return (
                               <div
