@@ -53,4 +53,15 @@ export function toBackendDateString(localDate: string): string {
   return utcDate.toISOString().split('T')[0];
 }
 
+// Obtiene el día de la semana en español para una fecha ISO
+export function getDayOfWeekFromISO(dateISO: string): string {
+  const [year, month, day] = dateISO.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  
+  return date.toLocaleDateString('es-ES', { 
+    weekday: 'long',
+    timeZone: 'America/Bogota'
+  });
+}
+
 

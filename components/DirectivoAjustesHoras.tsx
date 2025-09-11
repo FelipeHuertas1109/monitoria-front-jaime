@@ -169,9 +169,27 @@ export default function DirectivoAjustesHoras() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-gray-900">Ajustes de Horas</h1>
-          <p className="text-sm text-gray-600">Dar o quitar horas a monitores</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Ajustes de Horas</h1>
+            <p className="text-sm text-gray-600">Dar o quitar horas a monitores</p>
+          </div>
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-300 text-sm"
+          >
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="hidden sm:inline">Volver al inicio</span>
+            <span className="sm:hidden">Volver</span>
+          </button>
         </div>
 
         <div className="bg-white/70 backdrop-blur rounded-lg p-4 border border-indigo-100 mb-6">
