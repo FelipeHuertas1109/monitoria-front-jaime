@@ -24,7 +24,8 @@ export default function Dashboard() {
     { id: 1, href: '/directivo/horarios', title: 'Ver Horarios', description: 'Consultar todos los horarios de monitores', color: 'blue', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 2, href: '/directivo/reportes', title: '📊 Reportes', description: 'Estadísticas y análisis de asistencias', color: 'purple', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4' },
     { id: 3, href: '/directivo/ajustes-horas', title: 'Ajustes de Horas', description: 'Dar o quitar horas manualmente', color: 'amber', icon: 'M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 2c-2.21 0-4 1.79-4 4v6h8v-6c0-2.21-1.79-4-4-4z' },
-    { id: 4, href: '/directivo/heatmap', title: '🗺️ Mapa de Calor', description: 'Visualización anual de asistencias', color: 'pink', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4' }
+    { id: 4, href: '/directivo/heatmap', title: '🗺️ Mapa de Calor', description: 'Visualización anual de asistencias', color: 'pink', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4' },
+    { id: 5, href: '/directivo/finanzas', title: '💰 Finanzas', description: 'Análisis financiero y proyecciones de costos', color: 'emerald', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1' }
   ];
 
   // Inicializar orden de tarjetas
@@ -101,7 +102,8 @@ export default function Dashboard() {
       blue: 'border-blue-500 bg-blue-100 text-blue-600',
       purple: 'border-purple-500 bg-purple-100 text-purple-600',
       amber: 'border-amber-500 bg-amber-100 text-amber-600',
-      pink: 'border-pink-500 bg-pink-100 text-pink-600'
+      pink: 'border-pink-500 bg-pink-100 text-pink-600',
+      emerald: 'border-emerald-500 bg-emerald-100 text-emerald-600'
     };
 
     return (
@@ -218,34 +220,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Panel de Control</h1>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="hidden sm:flex items-center space-x-2">
-                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <span className="text-sm font-medium text-gray-700">{user?.nombre}</span>
-              </div>
-              <button
-                onClick={logout}
-                className="bg-red-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium"
-              >
-                <span className="hidden sm:inline">Cerrar Sesión</span>
-                <span className="sm:hidden">Salir</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
