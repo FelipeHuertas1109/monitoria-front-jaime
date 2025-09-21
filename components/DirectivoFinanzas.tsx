@@ -21,6 +21,7 @@ export default function DirectivoFinanzas() {
   // Estados principales
   const [vistaActiva, setVistaActiva] = useState<'resumen' | 'configuraciones'>('resumen');
   const [loading, setLoading] = useState(false);
+  const [recargandoDatos, setRecargandoDatos] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [servicioDisponible, setServicioDisponible] = useState(true);
   
@@ -271,7 +272,27 @@ export default function DirectivoFinanzas() {
         // Recargar configuraciones
         await cargarConfiguraciones();
         
-        Swal.fire('¡Actualizado!', 'La configuración ha sido actualizada correctamente', 'success');
+        // Recargar todos los datos financieros para reflejar los cambios
+        console.log('Recargando datos financieros después de actualizar configuración...');
+        setRecargandoDatos(true);
+        
+        try {
+          await Promise.all([
+            cargarResumenEjecutivo(),
+            cargarTodosMonitores(),
+            cargarTotalHoras()
+          ]);
+        } finally {
+          setRecargandoDatos(false);
+        }
+        
+        Swal.fire({
+          title: '¡Actualizado!',
+          text: 'La configuración ha sido actualizada y los datos financieros han sido recalculados',
+          icon: 'success',
+          timer: 3000,
+          showConfirmButton: false
+        });
       } catch (error) {
         console.error('Error al actualizar configuración:', error);
         Swal.fire('Error', 'No se pudo actualizar la configuración', 'error');
@@ -338,6 +359,7 @@ export default function DirectivoFinanzas() {
         break;
     }
   };
+
 
   if (!token) {
     return (
@@ -414,140 +436,6 @@ export default function DirectivoFinanzas() {
               title="Debug: Ver configuración de costos"
             >
               ⚙️
-            </button>
-            <button
-              onClick={() => {
-                if (reporteTodos && reporteTodos.monitores.length > 0) {
-                  const primerMonitor = reporteTodos.monitores[0];
-                  const horasTrabajadas = primerMonitor.finanzas_actuales.horas_trabajadas;
-                  const horasProyectadas = primerMonitor.proyeccion_semestre.horas_totales_proyectadas;
-                  const porcentajeCompletado = primerMonitor.proyeccion_semestre.porcentaje_completado;
-                  const progresoReal = calcularProgresoReal(primerMonitor);
-                  
-                  // Buscar datos de total horas
-                  const monitorTotalHoras = totalHoras?.monitores?.find((m: any) => m.monitor.id === primerMonitor.monitor.id);
-                  
-                  console.log('Análisis del % Completado:', {
-                    monitor: primerMonitor.monitor.nombre,
-                    horasTrabajadas,
-                    horasProyectadas,
-                    horasTotalesSemestre: monitorTotalHoras?.horas_semestre || 'No disponible',
-                    porcentajeCompletado,
-                    progresoReal,
-                    calculoManual: (horasTrabajadas / horasProyectadas) * 100
-                  });
-                  
-                  const horasTotalesSemestre = monitorTotalHoras?.horas_semestre || 0;
-                  const horasFaltantes = Math.max(0, horasTotalesSemestre - horasTrabajadas);
-                  
-                  Swal.fire({
-                    title: 'Análisis Detallado del Progreso',
-                    html: `
-                      <div class="text-left">
-                        <p><strong>Monitor:</strong> ${primerMonitor.monitor.nombre}</p>
-                        <hr class="my-3">
-                        
-                        <div class="bg-blue-50 p-3 rounded-lg mb-3">
-                          <h4 class="font-semibold text-blue-800 mb-2">📊 Horas del Semestre</h4>
-                          <p><strong>Horas Trabajadas:</strong> <span class="text-green-600 font-semibold">${horasTrabajadas}h</span></p>
-                          <p><strong>Horas Totales Semestre:</strong> <span class="text-blue-600 font-semibold">${horasTotalesSemestre}h</span></p>
-                          <p><strong>Horas Faltantes:</strong> <span class="text-orange-600 font-semibold">${horasFaltantes}h</span></p>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-3 rounded-lg mb-3">
-                          <h4 class="font-semibold text-gray-800 mb-2">📈 Comparación de Progreso</h4>
-                          <p><strong>% Progreso Real:</strong> <span class="text-blue-600 font-semibold">${progresoReal.toFixed(1)}%</span></p>
-                          <p><strong>% Backend (Proyectado):</strong> <span class="text-gray-600">${porcentajeCompletado.toFixed(1)}%</span></p>
-                          <p><strong>Diferencia:</strong> <span class="text-red-600">${(progresoReal - porcentajeCompletado).toFixed(1)}%</span></p>
-                        </div>
-                        
-                        <div class="bg-green-50 p-3 rounded-lg">
-                          <h4 class="font-semibold text-green-800 mb-2">🎯 Estado del Monitor</h4>
-                          <p><strong>Progreso:</strong> ${progresoReal >= 100 ? '✅ Completado' : 
-                                                      progresoReal >= 80 ? '🟢 Casi listo' : 
-                                                      progresoReal >= 60 ? '🟡 En progreso' : 
-                                                      progresoReal >= 40 ? '🟠 Iniciando' : '🔴 Pendiente'}</p>
-                          <p><strong>Fórmula Real:</strong> (${horasTrabajadas}h ÷ ${horasTotalesSemestre}h) × 100 = ${progresoReal.toFixed(1)}%</p>
-                        </div>
-                      </div>
-                    `,
-                    icon: 'info',
-                    width: '600px'
-                  });
-                } else {
-                  Swal.fire('Info', 'No hay datos de monitores disponibles', 'info');
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium"
-              title="Debug: Analizar % Completado"
-            >
-              📊
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  // Probar endpoint de configuraciones
-                  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/directivo/configuraciones/`, {
-                    method: 'GET',
-                    headers: {
-                      'Accept': 'application/json',
-                      'Authorization': `Bearer ${token}`,
-                    },
-                    mode: 'cors',
-                  });
-                  
-                  console.log('Status configuraciones:', response.status);
-                  
-                  if (response.ok) {
-                    const data = await response.json();
-                    console.log('Configuraciones del backend:', data);
-                    
-                    // Probar endpoint de actualización por clave
-                    let testResponseStatus = 'No disponible';
-                    
-                    const testResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/directivo/configuraciones/costo_por_hora/`, {
-                      method: 'PUT',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                      },
-                      mode: 'cors',
-                      body: JSON.stringify({ 
-                        clave: 'costo_por_hora',
-                        valor: '9965', 
-                        descripcion: 'Costo por hora de trabajo de los monitores en pesos colombianos (COP) - Test',
-                        tipo_dato: 'decimal'
-                      }),
-                    });
-                    
-                    testResponseStatus = `${testResponse.status} ${testResponse.ok ? '✅' : '❌'}`;
-                    console.log('Status actualización por clave:', testResponse.status);
-                    
-                    Swal.fire({
-                      title: 'Prueba de Endpoints',
-                      html: `
-                        <div class="text-left">
-                          <p><strong>GET /directivo/configuraciones/:</strong> ${response.status} ${response.ok ? '✅' : '❌'}</p>
-                          <p><strong>PUT /directivo/configuraciones/costo_por_hora/:</strong> ${testResponseStatus}</p>
-                          <hr class="my-3">
-                          <p class="text-sm text-gray-600">Usando endpoints por clave (nombre)</p>
-                        </div>
-                      `,
-                      icon: response.ok ? 'success' : 'error'
-                    });
-                  } else {
-                    throw new Error(`Error ${response.status}`);
-                  }
-                } catch (error) {
-                  console.error('Error en prueba de endpoints:', error);
-                  Swal.fire('Error', `Error al probar endpoints: ${error}`, 'error');
-                }
-              }}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded text-sm font-medium"
-              title="Probar endpoints de configuraciones"
-            >
-              🔧
             </button>
           </div>
 
@@ -667,6 +555,18 @@ export default function DirectivoFinanzas() {
           {/* Contenido normal cuando el servicio está disponible */}
           {servicioDisponible && (
             <>
+              {/* Indicador de recarga de datos */}
+              {recargandoDatos && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+                    <span className="text-blue-800 font-medium">
+                      🔄 Recargando datos financieros con la nueva configuración...
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Dashboard Ejecutivo */}
               {vistaActiva === 'resumen' && resumenEjecutivo && (
                 <div className="space-y-8">
@@ -1014,29 +914,155 @@ export default function DirectivoFinanzas() {
                 </div>
               )}
 
-              {/* Vista de Configuraciones */}
+              {/* Vista de Configuraciones con diseño moderno */}
               {vistaActiva === 'configuraciones' && (
-                <div className="space-y-6 bg-transparent">
-                  <div className="bg-white rounded-lg shadow-md border p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Configuraciones del Sistema</h3>
-                    <div className="space-y-4">
-                      {configuraciones.map((config) => (
-                        <div key={config.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{config.clave}</div>
-                            <div className="text-sm text-gray-600">{config.descripcion}</div>
-                            <div className="text-sm text-gray-500 mt-1">
-                              Valor actual: <span className="font-semibold">{config.valor}</span> ({config.tipo_dato})
+                <div className="space-y-8 bg-transparent">
+                  {/* Header de Configuraciones */}
+                  <div className="bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800 rounded-xl shadow-xl p-8 text-white">
+                    <div className="flex items-center">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-6">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-3xl font-bold">⚙️ Configuraciones del Sistema</h3>
+                        <p className="text-gray-200 text-lg mt-2">Gestiona los parámetros y configuraciones del sistema financiero</p>
+                        <p className="text-gray-300 text-sm mt-1">Ajusta costos, períodos y otros valores importantes</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tarjetas de Configuraciones */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {configuraciones.map((config, index) => (
+                      <div key={config.id} className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+                        {/* Header de la tarjeta */}
+                        <div className={`px-6 py-4 ${
+                          index % 2 === 0 
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600' 
+                            : 'bg-gradient-to-r from-purple-500 to-purple-600'
+                        } text-white`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3">
+                                {config.clave === 'costo_por_hora' ? (
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-bold">{config.clave.replace(/_/g, ' ').toUpperCase()}</h4>
+                                <p className="text-sm opacity-90">Configuración del Sistema</p>
+                              </div>
+                            </div>
+                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              config.tipo_dato === 'entero' 
+                                ? 'bg-green-400 text-green-900' 
+                                : 'bg-blue-400 text-blue-900'
+                            }`}>
+                              {config.tipo_dato.toUpperCase()}
                             </div>
                           </div>
-                          <button
-                            onClick={() => abrirModalConfiguracion(config)}
-                            className="ml-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-                          >
-                            Editar
-                          </button>
                         </div>
-                      ))}
+
+                        {/* Contenido de la tarjeta */}
+                        <div className="p-6">
+                          <div className="space-y-4">
+                            {/* Descripción */}
+                            <div>
+                              <h5 className="text-sm font-semibold text-gray-700 mb-2">Descripción</h5>
+                              <p className="text-gray-600 text-sm leading-relaxed">{config.descripcion}</p>
+                            </div>
+
+                            {/* Valor actual */}
+                            <div className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">Valor Actual</p>
+                                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                                    {config.clave === 'costo_por_hora' 
+                                      ? `$${Number(config.valor).toLocaleString('es-CO')}` 
+                                      : config.valor
+                                    }
+                                  </p>
+                                </div>
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                                  index % 2 === 0 
+                                    ? 'bg-blue-100' 
+                                    : 'bg-purple-100'
+                                }`}>
+                                  {config.clave === 'costo_por_hora' ? (
+                                    <svg className={`w-6 h-6 ${index % 2 === 0 ? 'text-blue-600' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                    </svg>
+                                  ) : (
+                                    <svg className={`w-6 h-6 ${index % 2 === 0 ? 'text-blue-600' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Información adicional */}
+                            <div className="flex items-center justify-center text-xs text-gray-500">
+                              <span>Última actualización: {new Date(config.updated_at).toLocaleDateString('es-CO')}</span>
+                            </div>
+                          </div>
+
+                          {/* Botón de editar */}
+                          <div className="mt-6 pt-4 border-t border-gray-100">
+                            <button
+                              onClick={() => abrirModalConfiguracion(config)}
+                              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-white transition-all duration-200 transform hover:scale-105 ${
+                                index % 2 === 0 
+                                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' 
+                                  : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                              } shadow-lg hover:shadow-xl`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              Editar Configuración
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Información adicional */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                    <div className="flex items-start">
+                      <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2">💡 Información Importante</h4>
+                        <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                          Las configuraciones del sistema afectan directamente los cálculos financieros y proyecciones. 
+                          Asegúrate de que los valores sean correctos antes de guardar los cambios.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            <span>Los cambios se aplican inmediatamente</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                            <span>Se mantiene historial de cambios</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

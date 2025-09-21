@@ -98,21 +98,44 @@ export const usePDFGenerator = () => {
           asistencias: []
         };
 
-        // Buscar estadísticas
-        const statElements = el.querySelectorAll('[class*="text-xl"], [class*="text-2xl"]');
+        // Buscar estadísticas - método mejorado para reporte de todos los monitores
+        const statElements = element.querySelectorAll('[class*="text-xl"], [class*="text-2xl"], [class*="text-3xl"]');
         statElements.forEach(stat => {
           const text = stat.textContent?.trim();
-          const parent = stat.closest('[class*="bg-white"]');
-          if (parent) {
-            const label = parent.querySelector('[class*="text-gray-600"]')?.textContent?.trim();
+          if (text && text.match(/^\d+$|^\d+\.\d+h$|^\d+\.\d+%$/)) {
+            // Buscar el label en el elemento padre o hermano
+            let label = '';
+            const parent = stat.closest('[class*="bg-gradient-to-br"]') || stat.closest('[class*="bg-white"]');
+            if (parent) {
+              const labelEl = parent.querySelector('[class*="text-blue-100"], [class*="text-green-100"], [class*="text-purple-100"], [class*="text-yellow-100"], [class*="text-gray-600"], [class*="text-sm"]');
+              if (labelEl) {
+                label = labelEl.textContent?.trim() || '';
+              }
+            }
+            
             if (label && text) {
               (data.estadisticas as any)[label] = text;
             }
           }
         });
 
+        // Método alternativo: buscar por estructura específica de tarjetas
+        const cardElements = element.querySelectorAll('[class*="bg-gradient-to-br"]');
+        cardElements.forEach(card => {
+          const valueEl = card.querySelector('[class*="text-2xl"], [class*="text-3xl"]');
+          const labelEl = card.querySelector('[class*="text-blue-100"], [class*="text-green-100"], [class*="text-purple-100"], [class*="text-yellow-100"]');
+          
+          if (valueEl && labelEl) {
+            const value = valueEl.textContent?.trim();
+            const label = labelEl.textContent?.trim();
+            if (value && label) {
+              (data.estadisticas as any)[label] = value;
+            }
+          }
+        });
+
         // Buscar asistencias por fecha - método mejorado
-        const asistenciaSections = el.querySelectorAll('[class*="divide-y"] > div');
+        const asistenciaSections = element.querySelectorAll('[class*="divide-y"] > div');
         asistenciaSections.forEach(section => {
           const fechaEl = section.querySelector('h4, [class*="font-medium"]');
           if (fechaEl) {
@@ -169,8 +192,63 @@ export const usePDFGenerator = () => {
 
       const reportData = extractReportData(element);
 
+      // Si no se encontraron estadísticas, usar método de respaldo para reporte de todos
+      if (Object.keys(reportData.estadisticas).length === 0) {
+        console.log('Usando método de respaldo para extraer estadísticas...');
+        
+        // Método de respaldo: buscar en la tabla de monitores
+        const tableRows = element.querySelectorAll('tbody tr');
+        let totalMonitores = 0;
+        let totalAsistencias = 0;
+        let totalHoras = 0;
+        let promedioHoras = 0;
+
+        tableRows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 5) {
+            totalMonitores++;
+            
+            // Buscar asistencias presentes y totales
+            const asistenciasCell = cells[1];
+            const presentesEl = asistenciasCell.querySelector('[class*="text-green-600"]');
+            const totalesEl = asistenciasCell.querySelector('[class*="text-gray-900"]');
+            
+            if (presentesEl) {
+              const presentes = parseInt(presentesEl.textContent?.trim() || '0');
+              totalAsistencias += presentes;
+            }
+            
+            if (totalesEl) {
+              const totales = parseInt(totalesEl.textContent?.trim() || '0');
+              totalAsistencias += totales;
+            }
+            
+            // Buscar horas
+            const horasCell = cells[4];
+            const horasEl = horasCell.querySelector('[class*="font-semibold"]');
+            if (horasEl) {
+              const horasText = horasEl.textContent?.trim() || '0h';
+              const horas = parseFloat(horasText.replace('h', ''));
+              totalHoras += horas;
+            }
+          }
+        });
+
+        if (totalMonitores > 0) {
+          promedioHoras = totalHoras / totalMonitores;
+          reportData.estadisticas = {
+            'Total Monitores': totalMonitores.toString(),
+            'Total Asistencias': totalAsistencias.toString(),
+            'Total Horas': `${totalHoras.toFixed(1)}h`,
+            'Promedio por Monitor': `${promedioHoras.toFixed(1)}h`
+          };
+        }
+      }
+
       // Si no se encontraron asistencias, usar método de respaldo mejorado
       if (reportData.asistencias.length === 0) {
+        console.log('Usando método de respaldo para extraer asistencias...');
+        
         // Método de respaldo: extraer todo el texto y buscar patrones
         const allText = element.textContent || '';
         const lines = allText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -212,6 +290,8 @@ export const usePDFGenerator = () => {
           reportData.asistencias.push(currentAsistencia);
         }
       }
+
+      console.log('Datos extraídos para PDF:', reportData);
 
       // Sección de estadísticas
       yPosition = addStyledText('ESTADÍSTICAS GENERALES', 20, yPosition, { 
@@ -263,43 +343,90 @@ export const usePDFGenerator = () => {
       });
       yPosition += 5;
 
-      // Procesar asistencias
-      reportData.asistencias.forEach((asistencia: any) => {
-        // Verificar si necesitamos nueva página
-        if (yPosition > pdfHeight - 40) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-
-        // Fecha
-        yPosition = addStyledText(asistencia.fecha, 20, yPosition, { 
-          fontSize: 12, 
-          fontStyle: 'bold', 
-          color: [primaryColor[0], primaryColor[1], primaryColor[2]]
-        });
-
-        // Detalles de la asistencia
-        (asistencia.detalles as string[]).forEach((detalle: string) => {
-          if (yPosition > pdfHeight - 20) {
+      // Procesar asistencias o mostrar información de monitores
+      if (reportData.asistencias.length > 0) {
+        reportData.asistencias.forEach((asistencia: any) => {
+          // Verificar si necesitamos nueva página
+          if (yPosition > pdfHeight - 40) {
             pdf.addPage();
             yPosition = 20;
           }
 
-          // Determinar color según el contenido
-          let color = [0, 0, 0];
-          if (detalle.includes('Presente')) color = successColor;
-          else if (detalle.includes('Ausente')) color = [239, 68, 68]; // Red
-          else if (detalle.includes('Autorizado')) color = successColor;
-          else if (detalle.includes('Pendiente')) color = warningColor;
-
-          yPosition = addStyledText(`  • ${detalle}`, 30, yPosition, { 
-            fontSize: 10, 
-            color 
+          // Fecha
+          yPosition = addStyledText(asistencia.fecha, 20, yPosition, { 
+            fontSize: 12, 
+            fontStyle: 'bold', 
+            color: [primaryColor[0], primaryColor[1], primaryColor[2]]
           });
-        });
 
+          // Detalles de la asistencia
+          (asistencia.detalles as string[]).forEach((detalle: string) => {
+            if (yPosition > pdfHeight - 20) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+
+            // Determinar color según el contenido
+            let color = [0, 0, 0];
+            if (detalle.includes('Presente')) color = successColor;
+            else if (detalle.includes('Ausente')) color = [239, 68, 68]; // Red
+            else if (detalle.includes('Autorizado')) color = successColor;
+            else if (detalle.includes('Pendiente')) color = warningColor;
+
+            yPosition = addStyledText(`  • ${detalle}`, 30, yPosition, { 
+              fontSize: 10, 
+              color 
+            });
+          });
+
+          yPosition += 5;
+        });
+      } else {
+        // Si no hay asistencias detalladas, mostrar información de monitores
+        yPosition = addStyledText('INFORMACIÓN DE MONITORES', 20, yPosition, { 
+          fontSize: 14, 
+          fontStyle: 'bold', 
+          color: [primaryColor[0], primaryColor[1], primaryColor[2]]
+        });
         yPosition += 5;
-      });
+
+        // Buscar información de monitores en la tabla
+        const tableRows = element.querySelectorAll('tbody tr');
+        tableRows.forEach((row, index) => {
+          if (yPosition > pdfHeight - 30) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 5) {
+            const monitorCell = cells[0];
+            const asistenciasCell = cells[1];
+            const horasCell = cells[4];
+
+            const monitorName = monitorCell.querySelector('[class*="font-medium"]')?.textContent?.trim() || 'Monitor';
+            const username = monitorCell.querySelector('[class*="text-gray-500"]')?.textContent?.trim() || '';
+            const presentesEl = asistenciasCell.querySelector('[class*="text-green-600"]');
+            const totalesEl = asistenciasCell.querySelector('[class*="text-gray-900"]');
+            const horasEl = horasCell.querySelector('[class*="font-semibold"]');
+
+            const presentes = presentesEl?.textContent?.trim() || '0';
+            const totales = totalesEl?.textContent?.trim() || '0';
+            const horas = horasEl?.textContent?.trim() || '0h';
+
+            yPosition = addStyledText(`${index + 1}. ${monitorName} (${username})`, 20, yPosition, { 
+              fontSize: 11, 
+              fontStyle: 'bold', 
+              color: [primaryColor[0], primaryColor[1], primaryColor[2]]
+            });
+            yPosition = addStyledText(`   Asistencias: ${presentes}/${totales} | Horas: ${horas}`, 30, yPosition, { 
+              fontSize: 10, 
+              color: [secondaryColor[0], secondaryColor[1], secondaryColor[2]]
+            });
+            yPosition += 3;
+          }
+        });
+      }
 
       // Pie de página en todas las páginas
       const pageCount = pdf.getNumberOfPages();

@@ -41,7 +41,7 @@ export default function Navbar() {
             {/* Dashboard principal */}
             <Link
               href="/"
-              className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-all duration-300 transform hover:scale-110 hover:rotate-3"
               title="Dashboard"
             >
               🏠
@@ -52,42 +52,42 @@ export default function Navbar() {
               <>
                 <Link
                   href="/directivo/asistencias"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-300 transform hover:scale-110 hover:-rotate-2"
                   title="Asistencias"
                 >
                   👥
                 </Link>
                 <Link
                   href="/directivo/horarios"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-green-100 hover:text-green-700 transition-all duration-300 transform hover:scale-110 hover:rotate-2"
                   title="Horarios"
                 >
                   📅
                 </Link>
                 <Link
                   href="/directivo/heatmap"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-red-100 hover:text-red-700 transition-all duration-300 transform hover:scale-110 hover:rotate-3"
                   title="Heatmap"
                 >
                   🔥
                 </Link>
                 <Link
                   href="/directivo/reportes"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-purple-100 hover:text-purple-700 transition-all duration-300 transform hover:scale-110 hover:-rotate-1"
                   title="Reportes"
                 >
                   📊
                 </Link>
                 <Link
                   href="/directivo/ajustes-horas"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-yellow-100 hover:text-yellow-700 transition-all duration-300 transform hover:scale-110 hover:rotate-2"
                   title="Ajustes"
                 >
                   ⏰
                 </Link>
                 <Link
                   href="/directivo/finanzas"
-                  className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-300 transform hover:scale-110 hover:-rotate-2"
                   title="Finanzas"
                 >
                   💰
@@ -97,23 +97,24 @@ export default function Navbar() {
 
             {/* Navegación para Monitores */}
             {isMonitor && (
-              <Link
-                href="/monitor/asistencias"
-                className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                title="Mis Asistencias"
-              >
-                📝
-              </Link>
+              <>
+                <Link
+                  href="/monitor/asistencias"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-300 transform hover:scale-110 hover:rotate-2"
+                  title="Mis Asistencias"
+                >
+                  📝
+                </Link>
+                {/* Horarios para monitores */}
+                <Link
+                  href="/horarios"
+                  className="px-3 py-2 rounded-lg text-lg hover:bg-green-100 hover:text-green-700 transition-all duration-300 transform hover:scale-110 hover:-rotate-1"
+                  title="Horarios"
+                >
+                  📋
+                </Link>
+              </>
             )}
-
-            {/* Horarios para todos */}
-            <Link
-              href="/horarios"
-              className="px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
-              title="Horarios"
-            >
-              📋
-            </Link>
           </div>
 
           {/* Usuario y acciones - Desktop */}
@@ -157,7 +158,7 @@ export default function Navbar() {
               {/* Dashboard principal */}
               <Link
                 href="/"
-                className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                 onClick={() => setIsMenuOpen(false)}
                 title="Dashboard"
               >
@@ -169,7 +170,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/directivo/asistencias"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-blue-100 hover:text-blue-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Asistencias"
                   >
@@ -177,7 +178,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/directivo/horarios"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-green-100 hover:text-green-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Horarios"
                   >
@@ -185,7 +186,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/directivo/heatmap"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-red-100 hover:text-red-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Heatmap"
                   >
@@ -193,7 +194,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/directivo/reportes"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-purple-100 hover:text-purple-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Reportes"
                   >
@@ -201,7 +202,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/directivo/ajustes-horas"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-yellow-100 hover:text-yellow-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Ajustes"
                   >
@@ -209,7 +210,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/directivo/finanzas"
-                    className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
                     onClick={() => setIsMenuOpen(false)}
                     title="Finanzas"
                   >
@@ -220,25 +221,26 @@ export default function Navbar() {
 
               {/* Navegación para Monitores */}
               {isMonitor && (
-                <Link
-                  href="/monitor/asistencias"
-                  className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                  title="Mis Asistencias"
-                >
-                  📝 Mis Asistencias
-                </Link>
+                <>
+                  <Link
+                    href="/monitor/asistencias"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
+                    onClick={() => setIsMenuOpen(false)}
+                    title="Mis Asistencias"
+                  >
+                    📝 Mis Asistencias
+                  </Link>
+                  {/* Horarios para monitores */}
+                  <Link
+                    href="/horarios"
+                    className="block px-3 py-2 rounded-lg text-lg hover:bg-green-100 hover:text-green-700 transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
+                    onClick={() => setIsMenuOpen(false)}
+                    title="Horarios"
+                  >
+                    📋 Horarios
+                  </Link>
+                </>
               )}
-
-              {/* Horarios para todos */}
-              <Link
-                href="/horarios"
-                className="block px-3 py-2 rounded-lg text-lg hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-                title="Horarios"
-              >
-                📋 Horarios
-              </Link>
 
               {/* Usuario y logout en móvil */}
               <div className="border-t border-gray-200 pt-4 mt-4">

@@ -221,10 +221,6 @@ export default function DirectivoAjustesHoras() {
                   ))}
                 </div>
               )}
-              <div className="mt-2">
-                <label className="block text-xs font-semibold mb-1 text-gray-800">Monitor ID (opcional)</label>
-                <input type="number" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" value={monitorId} onChange={(e) => setMonitorId(e.target.value)} placeholder="Ej: 3" />
-              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1 text-gray-800">Fecha inicio</label>
@@ -264,7 +260,6 @@ export default function DirectivoAjustesHoras() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monitor</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horas</th>
@@ -276,8 +271,7 @@ export default function DirectivoAjustesHoras() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {ajustes.map(a => (
                   <tr key={a.id}>
-                    <td className="px-4 py-2 text-sm text-gray-900">{a.id}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{a.usuario.nombre} (#{a.usuario.id})</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{a.usuario.nombre} ({a.usuario.username})</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.fecha}</td>
                     <td className="px-4 py-2 text-sm font-medium {a.cantidad_horas >= 0 ? 'text-green-700' : 'text-red-700'}">{a.cantidad_horas.toFixed(2)}h</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.motivo}</td>
@@ -289,7 +283,7 @@ export default function DirectivoAjustesHoras() {
                 ))}
                 {ajustes.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-500">No hay resultados</td>
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">No hay resultados</td>
                   </tr>
                 )}
               </tbody>
@@ -330,10 +324,6 @@ export default function DirectivoAjustesHoras() {
                       ))}
                     </div>
                   )}
-                  <div className="mt-2">
-                    <label className="block text-xs font-semibold mb-1 text-gray-800">Monitor ID</label>
-                    <input type="number" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" value={form.monitor_id || ''} onChange={(e) => setForm(prev => ({ ...prev, monitor_id: Number(e.target.value) }))} />
-                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
