@@ -273,7 +273,7 @@ export default function DirectivoAjustesHoras() {
                   <tr key={a.id}>
                     <td className="px-4 py-2 text-sm text-gray-900">{a.usuario.nombre} ({a.usuario.username})</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.fecha}</td>
-                    <td className="px-4 py-2 text-sm font-medium {a.cantidad_horas >= 0 ? 'text-green-700' : 'text-red-700'}">{a.cantidad_horas.toFixed(2)}h</td>
+                    <td className={`px-4 py-2 text-sm font-medium ${a.cantidad_horas >= 0 ? 'text-green-700' : 'text-red-700'}`}>{a.cantidad_horas.toFixed(2)}h</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.motivo}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.asistencia ? `#${a.asistencia.id} (${a.asistencia.fecha})` : '-'}</td>
                     <td className="px-4 py-2 text-right">
