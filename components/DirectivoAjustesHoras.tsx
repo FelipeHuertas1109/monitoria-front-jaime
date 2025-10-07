@@ -139,7 +139,14 @@ export default function DirectivoAjustesHoras() {
       const creado = await AjustesHorasService.crear(payload, token);
       setShowForm(false);
       setForm({ monitor_id: 0, fecha: todayBogota(), cantidad_horas: 1, motivo: '', asistencia_id: undefined });
-      await Swal.fire({ icon: 'success', title: 'Ajuste creado', text: `ID ${creado.id} - ${creado.cantidad_horas}h` });
+      await Swal.fire({ 
+        icon: 'success', 
+        title: 'Ajuste creado', 
+        text: `ID ${creado.id} - ${(() => {
+          const horas = Number(creado.cantidad_horas);
+          return isNaN(horas) ? '0.00' : horas.toFixed(2);
+        })()}h` 
+      });
       listar();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'No se pudo crear el ajuste';
@@ -246,7 +253,12 @@ export default function DirectivoAjustesHoras() {
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <div className="text-xs text-gray-500">Total horas ajustadas</div>
-              <div className="text-lg font-semibold text-gray-900">{resumen.total_horas_ajustadas.toFixed(2)}h</div>
+              <div className="text-lg font-semibold text-gray-900">
+                {(() => {
+                  const horas = Number(resumen.total_horas_ajustadas);
+                  return isNaN(horas) ? '0.00' : horas.toFixed(2);
+                })()}h
+              </div>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <div className="text-xs text-gray-500">Monitores afectados</div>
@@ -273,7 +285,12 @@ export default function DirectivoAjustesHoras() {
                   <tr key={a.id}>
                     <td className="px-4 py-2 text-sm text-gray-900">{a.usuario.nombre} ({a.usuario.username})</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.fecha}</td>
-                    <td className={`px-4 py-2 text-sm font-medium ${a.cantidad_horas >= 0 ? 'text-green-700' : 'text-red-700'}`}>{a.cantidad_horas.toFixed(2)}h</td>
+                    <td className={`px-4 py-2 text-sm font-medium ${Number(a.cantidad_horas) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {(() => {
+                        const horas = Number(a.cantidad_horas);
+                        return isNaN(horas) ? '0.00' : horas.toFixed(2);
+                      })()}h
+                    </td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.motivo}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{a.asistencia ? `#${a.asistencia.id} (${a.asistencia.fecha})` : '-'}</td>
                     <td className="px-4 py-2 text-right">
@@ -295,14 +312,14 @@ export default function DirectivoAjustesHoras() {
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-lg">
               <div className="p-4 border-b">
-                <h3 className="text-lg font-semibold">Nuevo ajuste</h3>
+                <h3 className="text-lg font-semibold text-black">Nuevo ajuste</h3>
               </div>
               <div className="p-4 space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold mb-1 text-gray-800">Buscar monitor</label>
+                  <label className="block text-xs font-semibold mb-1 text-black">Buscar monitor</label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black"
                     value={buscaForm}
                     onChange={(e) => onChangeBusquedaForm(e.target.value)}
                     placeholder="Nombre o username"
@@ -310,13 +327,13 @@ export default function DirectivoAjustesHoras() {
                   {(cargandoForm || resultadosForm.length > 0) && (
                     <div className="mt-1 max-h-40 overflow-auto border border-gray-200 rounded">
                       {cargandoForm && (
-                        <div className="px-3 py-2 text-xs text-gray-500">Buscando...</div>
+                        <div className="px-3 py-2 text-xs text-black">Buscando...</div>
                       )}
                       {!cargandoForm && resultadosForm.map(m => (
                         <button
                           key={m.id}
                           type="button"
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                          className="w-full text-left px-3 py-2 text-sm text-black hover:bg-gray-50"
                           onClick={() => { setForm(prev => ({ ...prev, monitor_id: m.id })); setBuscaForm(`${m.nombre} (${m.username})`); setResultadosForm([]); }}
                         >
                           {m.nombre} (#{m.id}) – {m.username}
@@ -327,25 +344,25 @@ export default function DirectivoAjustesHoras() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold mb-1 text-gray-800">Fecha</label>
-                    <input type="date" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" value={form.fecha} onChange={(e) => setForm(prev => ({ ...prev, fecha: e.target.value }))} />
+                    <label className="block text-xs font-semibold mb-1 text-black">Fecha</label>
+                    <input type="date" className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black" value={form.fecha} onChange={(e) => setForm(prev => ({ ...prev, fecha: e.target.value }))} />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold mb-1 text-gray-800">Horas (+/-)</label>
-                    <input type="number" step="0.25" min={-24} max={24} className="w-full border border-gray-300 rounded px-3 py-2 text-sm" value={form.cantidad_horas} onChange={(e) => setForm(prev => ({ ...prev, cantidad_horas: Number(e.target.value) }))} />
+                    <label className="block text-xs font-semibold mb-1 text-black">Horas (+/-)</label>
+                    <input type="number" step="0.25" min={-24} max={24} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black" value={form.cantidad_horas} onChange={(e) => setForm(prev => ({ ...prev, cantidad_horas: Number(e.target.value) }))} />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1 text-gray-800">Motivo</label>
-                  <textarea className="w-full border border-gray-300 rounded px-3 py-2 text-sm" rows={3} value={form.motivo} onChange={(e) => setForm(prev => ({ ...prev, motivo: e.target.value }))} />
+                  <label className="block text-xs font-semibold mb-1 text-black">Motivo</label>
+                  <textarea className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black" rows={3} value={form.motivo} onChange={(e) => setForm(prev => ({ ...prev, motivo: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1 text-gray-800">Asistencia relacionada (opcional)</label>
-                  <input type="number" className="w-full border border-gray-300 rounded px-3 py-2 text-sm" value={form.asistencia_id ?? ''} onChange={(e) => setForm(prev => ({ ...prev, asistencia_id: e.target.value ? Number(e.target.value) : undefined }))} />
+                  <label className="block text-xs font-semibold mb-1 text-black">Asistencia relacionada (opcional)</label>
+                  <input type="number" className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-black" value={form.asistencia_id ?? ''} onChange={(e) => setForm(prev => ({ ...prev, asistencia_id: e.target.value ? Number(e.target.value) : undefined }))} />
                 </div>
               </div>
               <div className="p-4 border-t flex gap-2 justify-end">
-                <button onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded text-sm">Cancelar</button>
+                <button onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-200 text-black rounded text-sm">Cancelar</button>
                 <button onClick={crearAjuste} className="px-4 py-2 bg-green-600 text-white rounded text-sm">Crear</button>
               </div>
             </div>

@@ -13,6 +13,8 @@ import {
   Configuracion,
   FinanzasQuery 
 } from '@/types/finanzas';
+import { validateDataConsistency, ModuleData, ValidationResult } from '../utils/dataValidation';
+import DataValidationAlert from './DataValidationAlert';
 
 export default function DirectivoFinanzas() {
   const { token } = useAuth();
@@ -32,6 +34,7 @@ export default function DirectivoFinanzas() {
   const [comparativaSemanas, setComparativaSemanas] = useState<ComparativaSemanas | null>(null);
   const [configuraciones, setConfiguraciones] = useState<Configuracion[]>([]);
   const [totalHoras, setTotalHoras] = useState<any>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   
   // Estados de filtros
   const [query, setQuery] = useState<FinanzasQuery>({

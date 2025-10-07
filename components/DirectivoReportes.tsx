@@ -13,6 +13,8 @@ import {
 } from '../types/reportes';
 import { todayBogota, formatDateFromISO, toBackendDateString } from '../utils/date';
 import { usePDFGenerator } from '../hooks/usePDFGenerator';
+import { validateDataConsistency, ModuleData, ValidationResult } from '../utils/dataValidation';
+import DataValidationAlert from './DataValidationAlert';
 
 export default function DirectivoReportes() {
   const { token } = useAuth();
@@ -31,7 +33,82 @@ export default function DirectivoReportes() {
   const [reporteMonitor, setReporteMonitor] = useState<ReporteHorasMonitorResponse | null>(null);
   const [vistaActiva, setVistaActiva] = useState<'todos' | 'individual'>('todos');
   const [error, setError] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const { generatePDF } = usePDFGenerator();
+
+  // Función para validar consistencia de datos
+  const validarConsistenciaDatos = async () => {
+    if (!reporteMonitor || !token) return;
+
+    try {
+      // Obtener datos de finanzas para comparar
+      const { FinanzasService } = await import('../services/finanzas');
+      const finanzasData = await FinanzasService.reporteFinancieroMonitor(
+        reporteMonitor.monitor.id,
+        {
+          fecha_inicio: reporteMonitor.periodo.fecha_inicio,
+          fecha_fin: reporteMonitor.periodo.fecha_fin,
+          sede: sede || undefined,
+          jornada: jornada || undefined
+        },
+        token
+      );
+
+      // Preparar datos para validación
+      const reportesData: ModuleData = {
+        horas_trabajadas: reporteMonitor.estadisticas.total_horas,
+        horas_asistencias: reporteMonitor.estadisticas.horas_asistencias,
+        horas_ajustes: reporteMonitor.estadisticas.horas_ajustes,
+        total_asistencias: reporteMonitor.estadisticas.total_asistencias,
+        asistencias_presentes: reporteMonitor.estadisticas.asistencias_presentes,
+        asistencias_autorizadas: reporteMonitor.estadisticas.asistencias_autorizadas,
+        periodo: reporteMonitor.periodo,
+        filtros: {
+          sede: sede || undefined,
+          jornada: jornada || undefined,
+          monitor_id: reporteMonitor.monitor.id
+        }
+      };
+
+      const finanzasModuleData: ModuleData = {
+        horas_trabajadas: finanzasData.finanzas_actuales.horas_trabajadas,
+        horas_asistencias: finanzasData.finanzas_actuales.horas_asistencias,
+        horas_ajustes: finanzasData.finanzas_actuales.horas_ajustes,
+        total_asistencias: finanzasData.estadisticas.total_asistencias,
+        asistencias_presentes: finanzasData.estadisticas.asistencias_presentes,
+        asistencias_autorizadas: finanzasData.estadisticas.asistencias_autorizadas,
+        periodo: {
+          fecha_inicio: reporteMonitor.periodo.fecha_inicio,
+          fecha_fin: reporteMonitor.periodo.fecha_fin
+        },
+        filtros: {
+          sede: sede || undefined,
+          jornada: jornada || undefined,
+          monitor_id: reporteMonitor.monitor.id
+        }
+      };
+
+      // Validar consistencia
+      const result = validateDataConsistency(reportesData, finanzasModuleData);
+      setValidationResult(result);
+
+    } catch (error) {
+      console.error('Error al validar consistencia de datos:', error);
+      setValidationResult({
+        isValid: false,
+        discrepancies: [{
+          type: 'hours',
+          module: 'finanzas',
+          field: 'validation_error',
+          expectedValue: 0,
+          actualValue: 0,
+          difference: 0,
+          description: 'Error al obtener datos de finanzas para validación'
+        }],
+        warnings: []
+      });
+    }
+  };
 
   // Establecer fecha de inicio por defecto (6 meses atrás)
   useEffect(() => {
@@ -89,6 +166,11 @@ export default function DirectivoReportes() {
       
       const data = await ReportesService.reporteHorasMonitor(Number(monitorSeleccionado), query, token);
       setReporteMonitor(data);
+      
+      // Validar consistencia automáticamente después de cargar
+      setTimeout(() => {
+        validarConsistenciaDatos();
+      }, 1000);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Error al cargar el reporte del monitor';
       setError(msg);
@@ -216,6 +298,14 @@ export default function DirectivoReportes() {
           </button>
         ))}
       </div>
+
+      {/* Validación de datos */}
+      {vistaActiva === 'individual' && reporteMonitor && (
+        <DataValidationAlert 
+          validationResult={validationResult}
+          onRefresh={validarConsistenciaDatos}
+        />
+      )}
 
       {/* Filtros */}
       <div className="bg-white/70 backdrop-blur rounded-lg p-4 border border-indigo-100 mb-6">
