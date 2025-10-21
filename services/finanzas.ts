@@ -25,6 +25,8 @@ export class FinanzasService {
     if (query.fecha_inicio) params.set('fecha_inicio', query.fecha_inicio);
     if (query.fecha_fin) params.set('fecha_fin', query.fecha_fin);
     if (query.semanas_trabajadas !== undefined) params.set('semanas_trabajadas', query.semanas_trabajadas.toString());
+    if (query.sede) params.set('sede', query.sede);
+    if (query.jornada) params.set('jornada', query.jornada);
     
     const url = `${this.baseUrl}/directivo/finanzas/monitor/${monitorId}/?${params.toString()}`;
 
@@ -63,6 +65,8 @@ export class FinanzasService {
     if (query.fecha_inicio) params.set('fecha_inicio', query.fecha_inicio);
     if (query.fecha_fin) params.set('fecha_fin', query.fecha_fin);
     if (query.semanas_trabajadas !== undefined) params.set('semanas_trabajadas', query.semanas_trabajadas.toString());
+    if (query.sede) params.set('sede', query.sede);
+    if (query.jornada) params.set('jornada', query.jornada);
     
     const url = `${this.baseUrl}/directivo/finanzas/todos-monitores/?${params.toString()}`;
 
@@ -98,6 +102,8 @@ export class FinanzasService {
     if (query.fecha_inicio) params.set('fecha_inicio', query.fecha_inicio);
     if (query.fecha_fin) params.set('fecha_fin', query.fecha_fin);
     if (query.semanas_trabajadas !== undefined) params.set('semanas_trabajadas', query.semanas_trabajadas.toString());
+    if (query.sede) params.set('sede', query.sede);
+    if (query.jornada) params.set('jornada', query.jornada);
     
     const url = `${this.baseUrl}/directivo/finanzas/resumen-ejecutivo/?${params.toString()}`;
     
