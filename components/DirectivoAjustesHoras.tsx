@@ -56,7 +56,7 @@ export default function DirectivoAjustesHoras() {
       listar();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, canQuery]);
 
   const listar = async () => {
     if (!token) return;
