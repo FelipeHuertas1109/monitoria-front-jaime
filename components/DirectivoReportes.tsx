@@ -636,6 +636,37 @@ export default function DirectivoReportes() {
       {/* Vista de Monitor Individual */}
       {vistaActiva === 'individual' && reporteMonitor && (
         <div id="reporte-individual" className="space-y-8 bg-transparent">
+          {/* Indicador de filtros aplicados */}
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <h4 className="text-sm font-semibold text-indigo-900">Filtros Aplicados</h4>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span className="text-indigo-700 font-medium">Período: </span>
+                <span className="text-indigo-900">
+                  {reporteMonitor.periodo.fecha_inicio ? formatDateFromISO(reporteMonitor.periodo.fecha_inicio) : 'Sin definir'} - {reporteMonitor.periodo.fecha_fin ? formatDateFromISO(reporteMonitor.periodo.fecha_fin) : 'Sin definir'}
+                </span>
+              </div>
+              <div>
+                <span className="text-indigo-700 font-medium">Sede: </span>
+                <span className="text-indigo-900">
+                  {reporteMonitor.filtros_aplicados?.sede === 'SA' ? 'San Antonio' : 
+                   reporteMonitor.filtros_aplicados?.sede === 'BA' ? 'Barcelona' : 'Todas'}
+                </span>
+              </div>
+              <div>
+                <span className="text-indigo-700 font-medium">Jornada: </span>
+                <span className="text-indigo-900">
+                  {reporteMonitor.filtros_aplicados?.jornada === 'M' ? 'Mañana' : 
+                   reporteMonitor.filtros_aplicados?.jornada === 'T' ? 'Tarde' : 'Todas'}
+                </span>
+              </div>
+            </div>
+          </div>
           {/* Información del monitor con diseño moderno */}
           <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl shadow-xl p-8 text-white">
             <div className="flex items-center">
