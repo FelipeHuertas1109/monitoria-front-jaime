@@ -202,4 +202,6 @@ export interface FinanzasQuery {
   fecha_inicio?: string;
   fecha_fin?: string;
   semanas_trabajadas?: number;
+  sede?: string;
+  jornada?: string;
 }

@@ -60,8 +60,8 @@ export default function DirectivoReportes() {
         horas_asistencias: reporteMonitor.estadisticas.horas_asistencias,
         horas_ajustes: reporteMonitor.estadisticas.horas_ajustes,
         total_asistencias: reporteMonitor.estadisticas.total_asistencias,
-        asistencias_presentes: reporteMonitor.estadisticas.asistencias_presentes,
-        asistencias_autorizadas: reporteMonitor.estadisticas.asistencias_autorizadas,
+        asistencias_presentes: reporteMonitor.estadisticas.asistencias_presentes || 0,
+        asistencias_autorizadas: reporteMonitor.estadisticas.asistencias_autorizadas || 0,
         periodo: reporteMonitor.periodo,
         filtros: {
           sede: sede || undefined,
@@ -75,8 +75,8 @@ export default function DirectivoReportes() {
         horas_asistencias: finanzasData.finanzas_actuales.horas_asistencias,
         horas_ajustes: finanzasData.finanzas_actuales.horas_ajustes,
         total_asistencias: finanzasData.estadisticas.total_asistencias,
-        asistencias_presentes: finanzasData.estadisticas.asistencias_presentes,
-        asistencias_autorizadas: finanzasData.estadisticas.asistencias_autorizadas,
+        asistencias_presentes: finanzasData.estadisticas.asistencias_presentes || 0,
+        asistencias_autorizadas: finanzasData.estadisticas.asistencias_autorizadas || 0,
         periodo: {
           fecha_inicio: reporteMonitor.periodo.fecha_inicio,
           fecha_fin: reporteMonitor.periodo.fecha_fin
@@ -117,12 +117,13 @@ export default function DirectivoReportes() {
     setFechaInicio(fecha6MesesAtras.toISOString().split('T')[0]);
   }, []);
 
+  // Cargar reporte cuando hay token y los filtros están listos
   useEffect(() => {
-    if (token && vistaActiva === 'todos') {
+    if (token && vistaActiva === 'todos' && fechaInicio) {
       cargarReporteTodos();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, fechaInicio]);
 
   const cargarReporteTodos = async () => {
     if (!token) return;
@@ -138,8 +139,15 @@ export default function DirectivoReportes() {
         jornada: jornada || undefined,
       };
       
+      console.log('🔍 Filtros aplicados al reporte:', {
+        fecha_inicio: query.fecha_inicio,
+        fecha_fin: query.fecha_fin,
+        sede: query.sede || 'Todas',
+        jornada: query.jornada || 'Todas',
+      });
+      
       const data = await ReportesService.reporteHorasTodos(query, token);
-      console.log('Datos del reporte todos:', data);
+      console.log('✅ Datos del reporte todos recibidos:', data);
       setReporteTodos(data);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Error al cargar el reporte';
@@ -164,7 +172,16 @@ export default function DirectivoReportes() {
         jornada: jornada || undefined,
       };
       
+      console.log('🔍 Filtros aplicados al reporte individual:', {
+        monitor_id: monitorSeleccionado,
+        fecha_inicio: query.fecha_inicio,
+        fecha_fin: query.fecha_fin,
+        sede: query.sede || 'Todas',
+        jornada: query.jornada || 'Todas',
+      });
+      
       const data = await ReportesService.reporteHorasMonitor(Number(monitorSeleccionado), query, token);
+      console.log('✅ Datos del reporte individual recibidos:', data);
       setReporteMonitor(data);
       
       // Validar consistencia automáticamente después de cargar
@@ -392,6 +409,37 @@ export default function DirectivoReportes() {
       {/* Vista de Todos los Monitores */}
       {vistaActiva === 'todos' && reporteTodos && (
         <div id="reporte-todos" className="space-y-6 bg-transparent">
+          {/* Indicador de filtros aplicados */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              <h4 className="text-sm font-semibold text-blue-900">Filtros Aplicados</h4>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span className="text-blue-700 font-medium">Período: </span>
+                <span className="text-blue-900">
+                  {reporteTodos.periodo.fecha_inicio ? formatDateFromISO(reporteTodos.periodo.fecha_inicio) : 'Sin definir'} - {reporteTodos.periodo.fecha_fin ? formatDateFromISO(reporteTodos.periodo.fecha_fin) : 'Sin definir'}
+                </span>
+              </div>
+              <div>
+                <span className="text-blue-700 font-medium">Sede: </span>
+                <span className="text-blue-900">
+                  {reporteTodos.filtros_aplicados?.sede === 'SA' ? 'San Antonio' : 
+                   reporteTodos.filtros_aplicados?.sede === 'BA' ? 'Barcelona' : 'Todas'}
+                </span>
+              </div>
+              <div>
+                <span className="text-blue-700 font-medium">Jornada: </span>
+                <span className="text-blue-900">
+                  {reporteTodos.filtros_aplicados?.jornada === 'M' ? 'Mañana' : 
+                   reporteTodos.filtros_aplicados?.jornada === 'T' ? 'Tarde' : 'Todas'}
+                </span>
+              </div>
+            </div>
+          </div>
           {/* Estadísticas generales con diseño PowerBI */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Monitores */}
