@@ -202,6 +202,8 @@ export interface FinanzasQuery {
   fecha_inicio?: string;
   fecha_fin?: string;
   semanas_trabajadas?: number;
+  sede?: 'SA' | 'BA';
+  jornada?: 'M' | 'T';
   sede?: string;
   jornada?: string;
 }
