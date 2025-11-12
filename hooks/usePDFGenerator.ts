@@ -6,6 +6,16 @@ interface PDFGeneratorOptions {
   title?: string;
   orientation?: 'portrait' | 'landscape';
   userName?: string;
+  reportData?: {
+    monitores?: Array<{
+      nombre: string;
+      username: string;
+      asistencias_presentes: number;
+      total_asistencias: number;
+      total_horas: number;
+      horas_programadas?: number;
+    }>;
+  };
 }
 
 export const usePDFGenerator = () => {
@@ -191,6 +201,14 @@ export const usePDFGenerator = () => {
       };
 
       const reportData = extractReportData(element);
+      
+      // Agregar monitores si se proporcionaron en las opciones
+      if (options.reportData?.monitores) {
+        (reportData as any).monitores = options.reportData.monitores;
+        console.log('✅ Datos de monitores agregados al reportData:', (reportData as any).monitores);
+      } else {
+        console.log('⚠️ No se proporcionaron datos de monitores en las opciones');
+      }
 
       // Si no se encontraron estadísticas, usar método de respaldo para reporte de todos
       if (Object.keys(reportData.estadisticas).length === 0) {
@@ -243,6 +261,12 @@ export const usePDFGenerator = () => {
             'Promedio por Monitor': `${promedioHoras.toFixed(1)}h`
           };
         }
+      }
+
+      // Si se proporcionaron datos del reporte directamente, usarlos
+      if (options.reportData?.monitores && options.reportData.monitores.length > 0) {
+        console.log('Usando datos del reporte proporcionados directamente...');
+        reportData.monitores = options.reportData.monitores;
       }
 
       // Si no se encontraron asistencias, usar método de respaldo mejorado
@@ -390,42 +414,101 @@ export const usePDFGenerator = () => {
         });
         yPosition += 5;
 
-        // Buscar información de monitores en la tabla
-        const tableRows = element.querySelectorAll('tbody tr');
-        tableRows.forEach((row, index) => {
-          if (yPosition > pdfHeight - 30) {
-            pdf.addPage();
-            yPosition = 20;
-          }
+        // Usar datos proporcionados directamente si están disponibles
+        if (reportData.monitores && Array.isArray(reportData.monitores) && reportData.monitores.length > 0) {
+          console.log('📊 Usando datos proporcionados directamente para PDF:', reportData.monitores.length, 'monitores');
+          reportData.monitores.forEach((monitor: any, index: number) => {
+            if (yPosition > pdfHeight - 30) {
+              pdf.addPage();
+              yPosition = 20;
+            }
 
-          const cells = row.querySelectorAll('td');
-          if (cells.length >= 5) {
-            const monitorCell = cells[0];
-            const asistenciasCell = cells[1];
-            const horasCell = cells[4];
+            const horasTrabajadas = typeof monitor.total_horas === 'number' ? monitor.total_horas : 0;
+            const horasProgramadas = typeof monitor.horas_programadas === 'number' ? monitor.horas_programadas : 0;
+            
+            // Siempre mostrar el formato completo si tenemos horas programadas, incluso si es 0
+            const horas = horasProgramadas > 0 || horasTrabajadas > 0
+              ? `${horasTrabajadas.toFixed(1)}h / ${horasProgramadas.toFixed(1)}h`
+              : '0.0h / 0.0h';
 
-            const monitorName = monitorCell.querySelector('[class*="font-medium"]')?.textContent?.trim() || 'Monitor';
-            const username = monitorCell.querySelector('[class*="text-gray-500"]')?.textContent?.trim() || '';
-            const presentesEl = asistenciasCell.querySelector('[class*="text-green-600"]');
-            const totalesEl = asistenciasCell.querySelector('[class*="text-gray-900"]');
-            const horasEl = horasCell.querySelector('[class*="font-semibold"]');
+            console.log(`Monitor ${index + 1}: ${monitor.nombre} - Horas: ${horas} (trabajadas: ${horasTrabajadas}, programadas: ${horasProgramadas})`);
 
-            const presentes = presentesEl?.textContent?.trim() || '0';
-            const totales = totalesEl?.textContent?.trim() || '0';
-            const horas = horasEl?.textContent?.trim() || '0h';
-
-            yPosition = addStyledText(`${index + 1}. ${monitorName} (${username})`, 20, yPosition, { 
+            yPosition = addStyledText(`${index + 1}. ${monitor.nombre} (@${monitor.username})`, 20, yPosition, { 
               fontSize: 11, 
               fontStyle: 'bold', 
               color: [primaryColor[0], primaryColor[1], primaryColor[2]]
             });
-            yPosition = addStyledText(`   Asistencias: ${presentes}/${totales} | Horas: ${horas}`, 30, yPosition, { 
+            yPosition = addStyledText(`   Asistencias: ${monitor.asistencias_presentes}/${monitor.total_asistencias} | Horas: ${horas}`, 30, yPosition, { 
               fontSize: 10, 
               color: [secondaryColor[0], secondaryColor[1], secondaryColor[2]]
             });
             yPosition += 3;
-          }
-        });
+          });
+        } else {
+          console.log('⚠️ No hay datos de monitores disponibles, usando método de respaldo (extracción del DOM)');
+          // Método de respaldo: buscar información de monitores en la tabla
+          const tableRows = element.querySelectorAll('tbody tr');
+          tableRows.forEach((row, index) => {
+            if (yPosition > pdfHeight - 30) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+              const monitorCell = cells[0];
+              const asistenciasCell = cells[1];
+              const horasCell = cells[4];
+
+              const monitorName = monitorCell.querySelector('[class*="font-medium"]')?.textContent?.trim() || 'Monitor';
+              const username = monitorCell.querySelector('[class*="text-gray-500"]')?.textContent?.trim() || '';
+              const presentesEl = asistenciasCell.querySelector('[class*="text-green-600"]');
+              const totalesEl = asistenciasCell.querySelector('[class*="text-gray-900"]');
+              
+              // Extraer horas del texto completo de la celda
+              const horasCellText = horasCell.textContent?.trim() || '';
+              
+              // Buscar patrón "X.0h / Y.0h" primero
+              let horas = '0.0h / 0.0h';
+              const horasCompletasMatch = horasCellText.match(/(\d+\.?\d*)h\s*\/\s*(\d+\.?\d*)h/);
+              
+              if (horasCompletasMatch) {
+                // Formato completo encontrado
+                horas = horasCompletasMatch[0];
+              } else {
+                // Si no está el formato completo, buscar solo horas trabajadas
+                const horasTrabajadasMatch = horasCellText.match(/(\d+\.?\d*)h/);
+                if (horasTrabajadasMatch) {
+                  const horasTrabajadas = parseFloat(horasTrabajadasMatch[1]);
+                  // Intentar calcular horas programadas basándose en asistencias
+                  const presentes = parseInt(presentesEl?.textContent?.trim() || '0');
+                  const totales = parseInt(totalesEl?.textContent?.trim() || '0');
+                  if (totales > 0 && presentes > 0) {
+                    // Estimar horas programadas: (horas trabajadas / presentes) * totales
+                    const horasProgramadas = (horasTrabajadas / presentes) * totales;
+                    horas = `${horasTrabajadas.toFixed(1)}h / ${horasProgramadas.toFixed(1)}h`;
+                  } else {
+                    horas = `${horasTrabajadas.toFixed(1)}h / 0.0h`;
+                  }
+                }
+              }
+
+              const presentes = presentesEl?.textContent?.trim() || '0';
+              const totales = totalesEl?.textContent?.trim() || '0';
+
+              yPosition = addStyledText(`${index + 1}. ${monitorName} (@${username})`, 20, yPosition, { 
+                fontSize: 11, 
+                fontStyle: 'bold', 
+                color: [primaryColor[0], primaryColor[1], primaryColor[2]]
+              });
+              yPosition = addStyledText(`   Asistencias: ${presentes}/${totales} | Horas: ${horas}`, 30, yPosition, { 
+                fontSize: 10, 
+                color: [secondaryColor[0], secondaryColor[1], secondaryColor[2]]
+              });
+              yPosition += 3;
+            }
+          });
+        }
       }
 
       // Pie de página en todas las páginas

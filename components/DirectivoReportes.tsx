@@ -212,9 +212,81 @@ export default function DirectivoReportes() {
     return total > 0 ? (presentes / total) * 100 : 0;
   };
 
+  const calcularHorasProgramadas = (asistencias: any[], totalAsistencias?: number, horasTrabajadas?: number): number => {
+    console.log('🔍 calcularHorasProgramadas llamado con:', {
+      asistencias_length: asistencias?.length || 0,
+      totalAsistencias,
+      horasTrabajadas
+    });
+    
+    // Si tenemos el array de asistencias con horas, calcular directamente
+    if (asistencias && Array.isArray(asistencias) && asistencias.length > 0) {
+      const total = asistencias.reduce((total, asistencia) => {
+        const horas = typeof asistencia?.horas === 'number' ? asistencia.horas : 0;
+        return total + horas;
+      }, 0);
+      
+      if (total > 0) {
+        console.log('✅ Horas programadas calculadas desde array:', total);
+        return total;
+      }
+      
+      // Si el array tiene elementos pero la suma es 0, calcular promedio
+      if (asistencias.length > 0 && totalAsistencias && totalAsistencias > 0) {
+        const horasPromedio = total / asistencias.length;
+        if (horasPromedio > 0) {
+          const horasProgramadas = horasPromedio * totalAsistencias;
+          console.log('📊 Horas programadas estimadas (promedio del array):', horasProgramadas);
+          return horasProgramadas;
+        }
+      }
+    }
+    
+    // Si tenemos totalAsistencias, calcular basándose en horas trabajadas o valor por defecto
+    if (totalAsistencias && totalAsistencias > 0) {
+      // Si tenemos horas trabajadas, calcular el promedio por asistencia presente
+      if (horasTrabajadas && horasTrabajadas > 0 && asistencias && Array.isArray(asistencias) && asistencias.length > 0) {
+        // Calcular promedio basado en asistencias presentes
+        const asistenciasPresentes = asistencias.filter(a => a?.presente === true).length;
+        if (asistenciasPresentes > 0) {
+          const horasPorAsistencia = horasTrabajadas / asistenciasPresentes;
+          const horasProgramadas = horasPorAsistencia * totalAsistencias;
+          console.log('📊 Horas programadas estimadas (promedio de presentes):', horasProgramadas, 'horas/asis:', horasPorAsistencia);
+          return horasProgramadas;
+        }
+      }
+      
+      // Si no tenemos datos suficientes, usar un promedio estándar
+      // Calcular basándose en las horas trabajadas si están disponibles
+      if (horasTrabajadas && horasTrabajadas > 0) {
+        // Estimar que cada asistencia tiene aproximadamente las mismas horas
+        // Usar el promedio de horas trabajadas por asistencia presente
+        const asistenciasPresentes = asistencias?.filter(a => a?.presente === true).length || 1;
+        const horasPorAsistencia = horasTrabajadas / asistenciasPresentes;
+        const horasProgramadas = horasPorAsistencia * totalAsistencias;
+        console.log('📊 Horas programadas estimadas (promedio trabajadas):', horasProgramadas, 'horas/asis:', horasPorAsistencia);
+        return horasProgramadas;
+      }
+      
+      // Último recurso: usar valor por defecto de 4 horas por asistencia
+      const horasPorAsistencia = 4;
+      const horasProgramadas = horasPorAsistencia * totalAsistencias;
+      console.log('📊 Horas programadas estimadas (default 4h):', horasProgramadas);
+      return horasProgramadas;
+    }
+    
+    console.log('⚠️ No se pudo calcular horas programadas - faltan datos');
+    return 0;
+  };
+
   const formatearPorcentaje = (valor: number) => `${valor.toFixed(1)}%`;
   const formatearCumplimiento = (valor: number) => `${Math.round(valor)}%`;
   const formatearHoras = (horas: number) => `${horas.toFixed(1)}h`;
+  const formatearHorasConProgramadas = (trabajadas: number, programadas: number) => {
+    const trabajadasNum = typeof trabajadas === 'number' && !isNaN(trabajadas) ? trabajadas : 0;
+    const programadasNum = typeof programadas === 'number' && !isNaN(programadas) ? programadas : 0;
+    return `${trabajadasNum.toFixed(1)}h / ${programadasNum.toFixed(1)}h`;
+  };
 
   const handlePrintPDF = async () => {
     try {
@@ -230,11 +302,48 @@ export default function DirectivoReportes() {
         filename = `reporte-asistencias-${userName}-${new Date().toISOString().split('T')[0]}.pdf`;
       }
       
+      // Preparar datos del reporte para el PDF
+      const reportData = vistaActiva === 'todos' && reporteTodos ? {
+        monitores: reporteTodos.monitores.map(monitor => {
+          console.log(`📋 Analizando monitor ${monitor.monitor.nombre}:`, {
+            total_horas: monitor.total_horas,
+            total_asistencias: monitor.total_asistencias,
+            asistencias_presentes: monitor.asistencias_presentes,
+            asistencias_array_length: monitor.asistencias?.length || 0,
+            primera_asistencia: monitor.asistencias?.[0] ? {
+              id: monitor.asistencias[0].id,
+              horas: monitor.asistencias[0].horas,
+              presente: monitor.asistencias[0].presente
+            } : null
+          });
+          
+          const horasProgramadas = calcularHorasProgramadas(
+            monitor.asistencias || [], 
+            monitor.total_asistencias,
+            monitor.total_horas
+          );
+          
+          console.log(`✅ ${monitor.monitor.nombre} - Horas programadas calculadas:`, horasProgramadas);
+          
+          return {
+            nombre: monitor.monitor.nombre,
+            username: monitor.monitor.username,
+            asistencias_presentes: monitor.asistencias_presentes,
+            total_asistencias: monitor.total_asistencias,
+            total_horas: monitor.total_horas,
+            horas_programadas: horasProgramadas
+          };
+        })
+      } : undefined;
+      
+      console.log('📄 Datos del reporte preparados para PDF:', reportData);
+      
       await generatePDF(elementId, {
         filename,
         title,
         orientation: 'landscape',
-        userName: vistaActiva === 'individual' ? reporteMonitor?.monitor.nombre : undefined
+        userName: vistaActiva === 'individual' ? reporteMonitor?.monitor.nombre : undefined,
+        reportData
       });
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error al generar PDF';
@@ -616,10 +725,17 @@ export default function DirectivoReportes() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="space-y-1">
                             <div className="text-sm font-semibold text-gray-900">
-                              {formatearHoras(monitor.total_horas)}
+                              {formatearHorasConProgramadas(
+                                monitor.total_horas || 0, 
+                                calcularHorasProgramadas(
+                                  monitor.asistencias || [], 
+                                  monitor.total_asistencias,
+                                  monitor.total_horas
+                                )
+                              )}
                             </div>
                             <div className="text-xs text-gray-500">
-                              Total trabajadas
+                              Trabajadas / Programadas
                             </div>
                           </div>
                         </td>
